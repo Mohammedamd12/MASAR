@@ -1,0 +1,19 @@
+name: masar
+version: "1.0.0"
+config-version: 2
+
+profile: masar
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+target-path: target
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  masar:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
+

@@ -1,0 +1,12 @@
+{
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "dbt/target": true
+  },
+  "python.analysis.extraPaths": [
+    "airflow/dags",
+    "airflow/scripts",
+    "streamlit"
+  ]
+}

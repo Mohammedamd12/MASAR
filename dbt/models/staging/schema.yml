@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: stg_source_files
+    description: "قائمة موحدة بملفات المصدر الموجودة في المشروع."
+    columns:
+      - name: file_name
+        tests:
+          - not_null
+          - unique
+      - name: dataset_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [public_sector_events, traffic]
+

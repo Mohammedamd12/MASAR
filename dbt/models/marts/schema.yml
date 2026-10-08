@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: dataset_summary
+    description: "ملخص بعدد الملفات لكل نوع بيانات."
+    columns:
+      - name: dataset_type
+        tests:
+          - not_null
+          - unique
+      - name: file_count
+        tests:
+          - not_null
+
