@@ -1,13 +1,23 @@
 # Terraform
 
-هذا Root Module آمن ومبدئي. لا ينشئ موارد أو تكاليف حاليًا لأن مزود السحابة والمنطقة لم يتم اختيارهما بعد.
+يدير هذا الـRoot Module موارد Masar داخل مشروع Google Cloud
+`saudi-industrial-mobility` وفي منطقة الدمام `me-central1`:
+
+- Cloud Storage bucket للملفات الخام.
+- BigQuery datasets: `masar_raw` و`masar_staging` و`masar_marts`.
+- Service Account للـpipeline بصلاحيات BigQuery وCloud Storage المحددة.
+
+استخدم Application Default Credentials محليًا ولا تنشئ أو ترفع Service Account key إلى GitHub.
 
 ```powershell
+gcloud config set project saudi-industrial-mobility
+gcloud auth application-default login
+Copy-Item terraform.tfvars.example terraform.tfvars
 terraform init
-terraform fmt -check
+terraform fmt
 terraform validate
 terraform plan
 ```
 
-بعد تحديد AWS أو Azure أو GCP نضيف provider وموارد التخزين والتشغيل المناسبة هنا.
+راجع خطة Terraform قبل تشغيل `terraform apply`. إعدادات الحذف الآمن تمنع حذف Bucket يحتوي ملفات أو BigQuery datasets تحتوي جداول بالخطأ.
 

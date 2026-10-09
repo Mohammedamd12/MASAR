@@ -1,3 +1,5 @@
-project_name = "masar"
-environment  = "dev"
+gcp_project_id = "saudi-industrial-mobility"
+gcp_region = "me-central1"
+project_name   = "masar"
+environment    = "dev"
 
