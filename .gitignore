@@ -31,3 +31,5 @@ data/processed/*
 Thumbs.db
 .idea/
 
+
+data/raw/
