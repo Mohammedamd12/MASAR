@@ -8,5 +8,6 @@
     "airflow/dags",
     "airflow/scripts",
     "streamlit"
-  ]
+  ],
+  "python-envs.defaultEnvManager": "ms-python.python:system"
 }

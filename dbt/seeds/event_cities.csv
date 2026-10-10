@@ -1,0 +1,31 @@
+event_city,region_code,industrial_city_codes
+Riyadh,RIY,RUH2|RUH3
+Diriyah,RIY,
+Al-Majmaah,RIY,SDR
+Jeddah,MAK,JED
+Makkah,MAK,
+Taif,MAK,
+Al-Qunfudhah,MAK,
+Buraydah,QSM,QAS
+Ar Rass,QSM,
+Unaizah,QSM,
+Riyadh Al-Khabra,QSM,
+Al-Mithnab,QSM,
+Al-Badai,QSM,
+Dammam,EAS,DMM1|DMM2
+Al-Ahsa,EAS,HSA
+Hafr Al-Batin,EAS,HFR
+Khobar,EAS,
+Jubail Industrial City,EAS,
+Tabuk,TBK,TAB
+Duba,TBK,
+Tayma,TBK,
+Umluj,TBK,
+Madinah,MAD,
+Yanbu Industrial City,MAD,
+AlUla,MAD,
+Mahd Al-Dhahab,MAD,
+Abha,ASR,
+Hail,HAL,
+Arar,NBR,
+Al-Jouf,JOF,
