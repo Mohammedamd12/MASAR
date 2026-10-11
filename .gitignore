@@ -13,6 +13,8 @@ airflow/airflow.cfg
 dbt/target/
 dbt/logs/
 dbt/dbt_packages/
+dbt/.user.yml
+dbt/gcp-key.json
 
 # Terraform
 terraform/.terraform/
