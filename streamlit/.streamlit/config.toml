@@ -1,0 +1,14 @@
+# Masar theme — (dark brown, cream text, terracotta accent)
+[theme]
+base = "dark"
+primaryColor = "#c98a68"
+backgroundColor = "#241b12"
+secondaryBackgroundColor = "#33271b"
+textColor = "#ecede0"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
