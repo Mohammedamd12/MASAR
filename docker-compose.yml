@@ -74,8 +74,10 @@ services:
     build: ./streamlit
     environment:
       MASAR_PROJECT_DIR: /app/project
+      MASAR_DATA_SOURCE: auto
     volumes:
       - ./:/app/project:ro
+      - ${APPDATA}/gcloud:/root/.config/gcloud:ro
     ports:
       - "8501:8501"
     restart: unless-stopped
