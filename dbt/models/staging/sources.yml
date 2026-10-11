@@ -2,6 +2,7 @@ version: 2
 
 sources:
   - name: masar_raw
+    database: saudi-industrial-mobility
     schema: masar_raw
     tables:
       - name: traffic_monthly

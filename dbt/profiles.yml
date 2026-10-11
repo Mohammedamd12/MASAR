@@ -3,7 +3,7 @@ masar:
   outputs:
     dev:
       type: bigquery
-      method: service-account
+      method: oauth
       project: saudi-industrial-mobility
       dataset: masar_staging
       threads: 4

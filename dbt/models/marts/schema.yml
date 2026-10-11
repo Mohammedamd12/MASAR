@@ -24,3 +24,42 @@ models:
       - name: total_movement
         tests:
           - not_null
+      - name: total_entries
+        tests:
+          - not_null
+      - name: total_exits
+        tests:
+          - not_null
+
+  - name: fct_events
+    description: "جدول الفعاليات المنظفة والمجهزة للعرض والتحليل."
+    columns:
+      - name: gov_request_number
+        tests:
+          - not_null
+          - unique
+      - name: event_name
+        tests:
+          - not_null
+      - name: event_city
+        tests:
+          - not_null
+      - name: start_date
+        tests:
+          - not_null
+      - name: end_date
+        tests:
+          - not_null
+
+  - name: fct_city_weather_daily
+    description: "جدول بيانات الطقس اليومية لكل مدينة صناعية."
+    columns:
+      - name: city_code
+        tests:
+          - not_null
+      - name: weather_date
+        tests:
+          - not_null
+      - name: weather_missing
+        tests:
+          - not_null
