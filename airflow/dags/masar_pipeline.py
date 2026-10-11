@@ -65,14 +65,13 @@ def masar_core_pipeline():
 
     @task
     def run_ingestion(_: str) -> str:
-        """Run Hassan's traffic and events ingestion pipeline."""
+        """Run traffic, events, and weather ingestion."""
 
         # Weather remains disabled until its integration is verified.
         run_command(
             "python",
             "-m",
             "ingestion.run",
-            "--skip-weather",
             cwd=PROJECT_DIR,
         )
 
@@ -150,6 +149,18 @@ def masar_core_pipeline():
             / "event_days.csv"
         ),
         dst="processed/event_days.csv",
+        bucket=GCS_BUCKET,
+        gcp_conn_id=GCP_CONN_ID,
+        mime_type="text/csv",
+    )
+
+    # Step 2D: Upload weather data to GCS.
+    upload_weather_to_gcs = LocalFilesystemToGCSOperator(
+        task_id="upload_weather_to_gcs",
+        src=str(
+            PROJECT_DIR / "data" / "processed" / "weather_daily.csv"
+        ),
+        dst="processed/weather_daily.csv",
         bucket=GCS_BUCKET,
         gcp_conn_id=GCP_CONN_ID,
         mime_type="text/csv",
@@ -239,18 +250,46 @@ def masar_core_pipeline():
         create_disposition="CREATE_IF_NEEDED",
         gcp_conn_id=GCP_CONN_ID,
     )
+        # Step 3D: Load daily weather data into BigQuery.
+    load_weather_to_bigquery = GCSToBigQueryOperator(
+        task_id="load_weather_to_bigquery",
+        bucket=GCS_BUCKET,
+        source_objects=["processed/weather_daily.csv"],
+        destination_project_dataset_table=(
+            f"{GCP_PROJECT}.masar_raw.weather_daily"
+        ),
+        source_format="CSV",
+        skip_leading_rows=1,
+        schema_fields=[
+            {"name": "city_code", "type": "STRING", "mode": "NULLABLE"},
+            {"name": "weather_date", "type": "DATE", "mode": "NULLABLE"},
+            {"name": "temperature_2m_max", "type": "FLOAT", "mode": "NULLABLE"},
+            {"name": "temperature_2m_min", "type": "FLOAT", "mode": "NULLABLE"},
+            {"name": "temperature_2m_mean", "type": "FLOAT", "mode": "NULLABLE"},
+            {"name": "precipitation_sum", "type": "FLOAT", "mode": "NULLABLE"},
+            {"name": "wind_speed_10m_max", "type": "FLOAT", "mode": "NULLABLE"},
+            {"name": "wind_gusts_10m_max", "type": "FLOAT", "mode": "NULLABLE"},
+            {"name": "weather_missing", "type": "BOOLEAN", "mode": "NULLABLE"},
+        ],
+        write_disposition="WRITE_TRUNCATE",
+        create_disposition="CREATE_IF_NEEDED",
+        gcp_conn_id=GCP_CONN_ID,
+    )
 
     # Step 4: Run all uploads after ingestion finishes.
     ingestion_output >> [
         upload_traffic_to_gcs,
         upload_events_to_gcs,
         upload_event_days_to_gcs,
+        upload_weather_to_gcs,
+
     ]
 
     # Step 5: Each BigQuery load waits for its GCS upload.
     upload_traffic_to_gcs >> load_traffic_to_bigquery
     upload_events_to_gcs >> load_events_to_bigquery
     upload_event_days_to_gcs >> load_event_days_to_bigquery
+    upload_weather_to_gcs >> load_weather_to_bigquery
 
     # Step 6: dbt waits for all three BigQuery loads.
     dbt_task = build_dbt(ingestion_output)
@@ -259,6 +298,8 @@ def masar_core_pipeline():
         load_traffic_to_bigquery,
         load_events_to_bigquery,
         load_event_days_to_bigquery,
+        load_weather_to_bigquery,
+
     ] >> dbt_task
 
 
