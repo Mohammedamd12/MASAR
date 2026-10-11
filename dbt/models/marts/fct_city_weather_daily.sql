@@ -11,5 +11,7 @@ select
     temperature_2m_min,
     temperature_2m_mean,
     precipitation_sum,
-    wind_speed_10m_max
+    wind_speed_10m_max,
+    wind_gusts_10m_max,
+    weather_missing
 from weather_data
