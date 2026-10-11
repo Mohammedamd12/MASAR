@@ -2,8 +2,10 @@ version: 2
 
 sources:
   - name: masar_raw
+    database: saudi-industrial-mobility
     schema: masar_raw
     tables:
       - name: traffic_monthly
       - name: events_clean
+      - name: event_days
       - name: weather_daily
