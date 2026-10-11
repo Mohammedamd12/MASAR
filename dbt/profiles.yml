@@ -2,7 +2,12 @@ masar:
   target: dev
   outputs:
     dev:
-      type: duckdb
-      path: "../data/processed/masar.duckdb"
+      type: bigquery
+      method: service-account
+      project: saudi-industrial-mobility
+      dataset: masar_staging
       threads: 4
-
+      keyfile: /opt/airflow/project/dbt/gcp-key.json
+      location: me-central1
+      priority: interactive
+      retries: 1
