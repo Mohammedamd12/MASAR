@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from airflow.sdk import dag, task
@@ -16,12 +16,14 @@ from airflow.providers.google.cloud.transfers.gcs_to_bigquery import (
 
 
 PROJECT_DIR = Path(os.environ.get("MASAR_PROJECT_DIR", "/opt/airflow/project"))
+
 GCP_PROJECT = "saudi-industrial-mobility"
 GCS_BUCKET = "saudi-industrial-mobility-raw-data"
 GCP_CONN_ID = "google_cloud_default"
 
 
 def run_command(*command: str, cwd: Path | None = None) -> None:
+    """Run a command and fail the Airflow task if it fails."""
     subprocess.run(command, cwd=cwd, check=True)
 
 
@@ -30,17 +32,29 @@ def run_command(*command: str, cwd: Path | None = None) -> None:
     schedule="@daily",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    default_args={
+        "retries": 2,
+        "retry_delay": timedelta(minutes=2),
+    },
     tags=["masar", "core"],
 )
 def masar_core_pipeline():
 
     @task
     def profile_workbooks() -> str:
-        output = PROJECT_DIR / "data" / "processed" / "workbook_inventory.csv"
+        """Inspect the Excel workbooks before ingestion."""
+        output = (
+            PROJECT_DIR / "data" / "processed" / "workbook_inventory.csv"
+        )
 
         run_command(
             "python",
-            str(PROJECT_DIR / "airflow" / "scripts" / "profile_workbooks.py"),
+            str(
+                PROJECT_DIR
+                / "airflow"
+                / "scripts"
+                / "profile_workbooks.py"
+            ),
             "--input-dir",
             str(PROJECT_DIR),
             "--output",
@@ -51,8 +65,9 @@ def masar_core_pipeline():
 
     @task
     def run_ingestion(_: str) -> str:
-        # Run Hassan's ingestion pipeline.
-        # Weather is temporarily skipped during local testing.
+        """Run Hassan's traffic and events ingestion pipeline."""
+
+        # Weather remains disabled until its integration is verified.
         run_command(
             "python",
             "-m",
@@ -65,51 +80,88 @@ def masar_core_pipeline():
 
     @task
     def build_dbt(_: str) -> None:
-        # Run dbt after all BigQuery load tasks finish.
+        """Run dbt only after the BigQuery loads succeed."""
         dbt_dir = PROJECT_DIR / "dbt"
 
-        run_command("dbt", "seed", "--profiles-dir", ".", cwd=dbt_dir)
-        run_command("dbt", "run", "--profiles-dir", ".", cwd=dbt_dir)
-        run_command("dbt", "test", "--profiles-dir", ".", cwd=dbt_dir)
+        run_command(
+            "dbt",
+            "seed",
+            "--profiles-dir",
+            ".",
+            cwd=dbt_dir,
+        )
 
-    # Step 1: Profile source workbooks and prepare clean CSV files.
+        run_command(
+            "dbt",
+            "run",
+            "--profiles-dir",
+            ".",
+            cwd=dbt_dir,
+        )
+
+        run_command(
+            "dbt",
+            "test",
+            "--profiles-dir",
+            ".",
+            cwd=dbt_dir,
+        )
+
+    # Step 1: Profile Excel workbooks and run ingestion.
     ingestion_output = run_ingestion(profile_workbooks())
 
-    # Step 2A: Upload cleaned traffic data to GCS.
+    # Step 2A: Upload traffic CSV to GCS.
     upload_traffic_to_gcs = LocalFilesystemToGCSOperator(
         task_id="upload_traffic_to_gcs",
-        src=str(PROJECT_DIR / "data" / "processed" / "traffic_monthly_clean.csv"),
+        src=str(
+            PROJECT_DIR
+            / "data"
+            / "processed"
+            / "traffic_monthly_clean.csv"
+        ),
         dst="processed/traffic_monthly_clean.csv",
         bucket=GCS_BUCKET,
         gcp_conn_id=GCP_CONN_ID,
         mime_type="text/csv",
     )
 
-    # Step 2B: Upload cleaned events data to GCS.
+    # Step 2B: Upload events CSV to GCS.
     upload_events_to_gcs = LocalFilesystemToGCSOperator(
         task_id="upload_events_to_gcs",
-        src=str(PROJECT_DIR / "data" / "processed" / "events_clean.csv"),
+        src=str(
+            PROJECT_DIR
+            / "data"
+            / "processed"
+            / "events_clean.csv"
+        ),
         dst="processed/events_clean.csv",
         bucket=GCS_BUCKET,
         gcp_conn_id=GCP_CONN_ID,
         mime_type="text/csv",
     )
 
-    # Step 2C: Upload expanded event-day records to GCS.
+    # Step 2C: Upload event-day CSV to GCS.
     upload_event_days_to_gcs = LocalFilesystemToGCSOperator(
         task_id="upload_event_days_to_gcs",
-        src=str(PROJECT_DIR / "data" / "processed" / "event_days.csv"),
+        src=str(
+            PROJECT_DIR
+            / "data"
+            / "processed"
+            / "event_days.csv"
+        ),
         dst="processed/event_days.csv",
         bucket=GCS_BUCKET,
         gcp_conn_id=GCP_CONN_ID,
         mime_type="text/csv",
     )
 
-    # Step 3A: Load traffic CSV from GCS into BigQuery.
+    # Step 3A: Load traffic data into BigQuery.
     load_traffic_to_bigquery = GCSToBigQueryOperator(
         task_id="load_traffic_to_bigquery",
         bucket=GCS_BUCKET,
-        source_objects=["processed/traffic_monthly_clean.csv"],
+        source_objects=[
+            "processed/traffic_monthly_clean.csv"
+        ],
         destination_project_dataset_table=(
             f"{GCP_PROJECT}.masar_raw.traffic_monthly"
         ),
@@ -131,11 +183,13 @@ def masar_core_pipeline():
         gcp_conn_id=GCP_CONN_ID,
     )
 
-    # Step 3B: Load cleaned event records into BigQuery.
+    # Step 3B: Load events data into BigQuery.
     load_events_to_bigquery = GCSToBigQueryOperator(
         task_id="load_events_to_bigquery",
         bucket=GCS_BUCKET,
-        source_objects=["processed/events_clean.csv"],
+        source_objects=[
+            "processed/events_clean.csv"
+        ],
         destination_project_dataset_table=(
             f"{GCP_PROJECT}.masar_raw.events_clean"
         ),
@@ -163,11 +217,13 @@ def masar_core_pipeline():
         allow_quoted_newlines=True,
     )
 
-    # Step 3C: Load daily event-city records into BigQuery.
+    # Step 3C: Load event-day data into BigQuery.
     load_event_days_to_bigquery = GCSToBigQueryOperator(
         task_id="load_event_days_to_bigquery",
         bucket=GCS_BUCKET,
-        source_objects=["processed/event_days.csv"],
+        source_objects=[
+            "processed/event_days.csv"
+        ],
         destination_project_dataset_table=(
             f"{GCP_PROJECT}.masar_raw.event_days"
         ),
@@ -184,18 +240,19 @@ def masar_core_pipeline():
         gcp_conn_id=GCP_CONN_ID,
     )
 
-    # Step 4: Each upload must finish before its matching BigQuery load.
+    # Step 4: Run all uploads after ingestion finishes.
     ingestion_output >> [
         upload_traffic_to_gcs,
         upload_events_to_gcs,
         upload_event_days_to_gcs,
     ]
 
+    # Step 5: Each BigQuery load waits for its GCS upload.
     upload_traffic_to_gcs >> load_traffic_to_bigquery
     upload_events_to_gcs >> load_events_to_bigquery
     upload_event_days_to_gcs >> load_event_days_to_bigquery
 
-    # Step 5: dbt waits for all three BigQuery load tasks.
+    # Step 6: dbt waits for all three BigQuery loads.
     dbt_task = build_dbt(ingestion_output)
 
     [
