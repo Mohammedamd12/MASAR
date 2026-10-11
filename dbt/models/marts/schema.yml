@@ -12,3 +12,15 @@ models:
         tests:
           - not_null
 
+  - name: fct_city_movement_monthly
+    description: "جدول مجمع لحركة المركبات الشهرية لكل مدينة - مخصص للداشبورد"
+    columns:
+      - name: city_name
+        tests:
+          - not_null
+      - name: movement_month
+        tests:
+          - not_null
+      - name: total_movement
+        tests:
+          - not_null
