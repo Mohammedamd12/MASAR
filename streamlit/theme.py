@@ -15,31 +15,31 @@ import plotly.graph_objects as go
 ASSETS = Path(__file__).resolve().parent / "assets"
 
 # --------------------------------------------------------------------------- palette
-BG = "#0a1430"               # page
-CARD = "#152a56"             # cards / tiles (a touch lighter than the deck for contrast)
-CARD_2 = "#10224a"           # inner surfaces (sidebar, inputs)
-LINE = "#2a4478"             # borders / dividers
-TXT = "#e6f2f7"              # primary text
-MUTED = "#a6b3cf"            # secondary text (lighter than the deck's #8a97b5 for legibility)
-FAINT = "rgba(166,179,207,0.14)"
-SKY, TEAL, GREEN = "#5fd3e0", "#1ec6cf", "#2dd68c"
-ACCENT = TEAL                # single-series bars, highlights
-WARN = "#f59e0b"             # warning cards (orange border)
-LAND, SEA, BORDER = "#1a3263", "#0a1430", "#36548e"
-NEUTRAL_MID = "#1d3260"      # diverging midpoint
+BG = "#EAF5F4"               # pale mint page background
+CARD = "#FFFFFF"             # white dashboard cards
+CARD_2 = "#F4FAF9"           # soft mint inner surfaces
+LINE = "#D3E3E1"             # subtle cool-grey borders
+TXT = "#292836"              # deep charcoal/navy
+MUTED = "#667477"            # secondary copy
+FAINT = "rgba(41,40,54,0.10)"
+SKY, TEAL, GREEN = "#FF826B", "#F36F5A", "#95DE91"
+ACCENT = TEAL                 # coral highlight from the reference
+WARN = "#F4A259"
+LAND, SEA, BORDER = "#DDCDA8", "#C9E3E5", "#817866"
+NEUTRAL_MID = "#F1EFEB"
 
 # Categorical — colour follows the entity: a region keeps its colour whatever the filters.
 REGION_COLORS = {
-    "Riyadh": "#5fd3e0",
-    "Eastern": "#2dd68c",
-    "Makkah": "#f4a259",
-    "Qassim": "#b79cff",
-    "Tabuk": "#ff7a9a",
+    "Riyadh": "#63C7C9",
+    "Eastern": "#82D98A",
+    "Makkah": "#F4A259",
+    "Qassim": "#9A8BD8",
+    "Tabuk": "#FF826B",
 }
 ENTRIES = SKY
-EXITS = "#f4a259"
+EXITS = "#292836"
 UP = GREEN                   # diverging: growth up
-DOWN = "#ff6b6b"             # diverging: growth down
+DOWN = "#FF826B"             # diverging: growth down
 
 FONT = 'Montserrat, "Segoe UI", system-ui, sans-serif'
 FONT_AR = 'Cairo, "Segoe UI", sans-serif'
@@ -61,6 +61,7 @@ def _b64(name: str) -> str:
 
 ICON_SVG = _asset("masar_icon.svg")
 WORDMARK = _b64("masar_wordmark.png")
+SAUDI_LANDMARKS = _b64("saudi_landmarks.png")
 FAVICON = str(ASSETS / "favicon.png") if (ASSETS / "favicon.png").exists() else "🧭"
 
 
@@ -82,8 +83,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"], .stMa
 [data-testid="stAppViewContainer"] {{ background: {BG}; }}
 [data-testid="stHeader"] {{ background: transparent; }}
 .block-container {{ padding-top: 1.4rem; padding-bottom: 1.5rem; max-width: 1440px; }}
-[data-testid="stSidebar"] {{ background: {CARD_2}; border-right: 1px solid {LINE}; }}
-[data-testid="stSidebar"] h3 {{ font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: {MUTED}; }}
+[data-testid="stSidebar"] {{ background: #292836; border-right: 1px solid #3B3949; }}
+[data-testid="stSidebar"] h3 {{ font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: #FFFFFF; }}
+[data-testid="stSidebar"] p, [data-testid="stSidebar"] label {{ color: #D7D9DE; }}
 p, li, label, .stCaption, [data-testid="stCaptionContainer"] {{ color: {MUTED}; }}
 h1, h2, h3, h4, h5 {{ color: {TXT}; font-family: {FONT}; }}
 
@@ -124,9 +126,9 @@ div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {{ c
 /* header */
 .mh {{ container-type: inline-size; position: relative; overflow: hidden; border: 1px solid {LINE}; border-radius: 18px; padding: 22px 26px 22px;
   margin-bottom: 1rem; color: {TXT};
-  background: radial-gradient(1200px 260px at 85% -40%, rgba(30,198,207,.18), transparent 60%),
-              radial-gradient(600px 200px at 0% 120%, rgba(45,214,140,.10), transparent 60%),
-              linear-gradient(180deg, #102048, {BG}); }}
+  background: radial-gradient(1200px 260px at 85% -40%, rgba(255,130,107,.14), transparent 60%),
+              radial-gradient(600px 200px at 0% 120%, rgba(149,222,145,.18), transparent 60%),
+              linear-gradient(180deg, #FFFFFF, {CARD_2}); }}
 .mh::before {{ content: ""; position: absolute; inset: 0; pointer-events: none;
   background-image: radial-gradient(rgba(166,179,207,.16) 1px, transparent 1px); background-size: 18px 18px;
   mask-image: linear-gradient(90deg, transparent, #000 45%); -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); }}
@@ -142,21 +144,21 @@ div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {{ c
 .mh-h1 {{ font-size: 26px; font-weight: 700; line-height: 1.15; margin: 6px 0 4px; letter-spacing: -.01em; color: {TXT}; }}
 .mh-sub {{ font-size: 13px; color: {MUTED}; }}
 .mh-chips {{ display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }}
-.mh-chip {{ font-size: 11.5px; font-weight: 600; color: {TXT}; border: 1px solid {LINE}; background: rgba(21,42,86,.75);
+.mh-chip {{ font-size: 11.5px; font-weight: 600; color: {TXT}; border: 1px solid {LINE}; background: rgba(255,255,255,.88);
   border-radius: 999px; padding: 4px 11px; display: inline-flex; align-items: center; gap: 6px; }}
 .mh-chip i {{ width: 7px; height: 7px; border-radius: 50%; background: {GREEN}; box-shadow: 0 0 0 3px rgba(45,214,140,.18);
   animation: mhblink 2.4s infinite; }}
 .mh-chip.off i {{ background: {WARN}; box-shadow: 0 0 0 3px rgba(245,158,11,.18); }}
 .mh-sky {{ flex: 1 1 auto; min-width: 280px; max-width: 640px; height: auto; margin: -14px -8px 0 auto; }}
 .mh-kpis {{ position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }}
-.mh-k {{ background: rgba(21,42,86,.88); border: 1px solid {LINE}; border-radius: 12px; padding: 12px 14px 12px 16px;
+.mh-k {{ background: rgba(255,255,255,.94); border: 1px solid {LINE}; border-radius: 12px; padding: 12px 14px 12px 16px;
   position: relative; overflow: hidden; height: 98px; box-sizing: border-box; display: flex; flex-direction: column; }}
 .mh-k::before {{ content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: linear-gradient(180deg, {SKY}, {GREEN}); }}
 .mh-k .l {{ font-size: 10.5px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: {MUTED};
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 .mh-k .v {{ font-size: 24px; font-weight: 700; margin-top: 4px; letter-spacing: -.01em; color: {TXT}; line-height: 1.2;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
-.mh-k .v.g {{ background: linear-gradient(90deg, {SKY}, {GREEN}); -webkit-background-clip: text; background-clip: text; color: transparent; }}
+.mh-k .v.g {{ background: none; color: {TXT}; }}
 .mh-k .s {{ font-size: 11.5px; color: {MUTED}; margin-top: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 .mh-route {{ animation: mhdash 3s linear infinite; }} .mh-lane {{ animation: mhdash 1.2s linear infinite; }}
 .mh-truck {{ animation: mhdrive 14s linear infinite; }}
@@ -242,7 +244,7 @@ div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {{ c
 .cp .nm {{ font-size: 1.3rem; font-weight: 700; color: {TXT}; margin-top: .15rem; }}
 .cp .rg {{ font-size: .82rem; color: {MUTED}; }}
 .cp-stats {{ display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin: .9rem 0 .8rem; }}
-.cp-s {{ background: rgba(10,20,48,.45); border: 1px solid {LINE}; border-radius: 10px; padding: 9px 11px; }}
+.cp-s {{ background: rgba(234,245,244,.72); border: 1px solid {LINE}; border-radius: 10px; padding: 9px 11px; }}
 .cp-s .l {{ font-size: .66rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: {MUTED}; }}
 .cp-s .v {{ font-size: 1.12rem; font-weight: 700; color: {TXT}; margin-top: 2px; }}
 .cp-s .v.up {{ color: {GREEN}; }} .cp-s .v.down {{ color: {DOWN}; }}
@@ -263,38 +265,58 @@ div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {{ c
 
 # --------------------------------------------------------------------------- header
 def _skyline() -> str:
+    if SAUDI_LANDMARKS:
+        return f"""<svg class="mh-sky" viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs><clipPath id="landmarks-clip"><rect x="18" y="4" width="622" height="137" rx="3"/></clipPath></defs>
+<image href="data:image/png;base64,{SAUDI_LANDMARKS}" x="18" y="4" width="622" height="137"
+ preserveAspectRatio="xMidYMax slice" clip-path="url(#landmarks-clip)"/>
+<path d="M24 148 H640" stroke="#292836" stroke-width="10" stroke-linecap="round"/>
+<path class="mh-lane" d="M26 148 H638" stroke="#FFFFFF" stroke-width="1.3" stroke-dasharray="9 9" opacity=".82"/>
+<g class="mh-truck"><rect x="0" y="137" width="24" height="9" rx="1.5" fill="{TEAL}"/><path d="M24 140h7l5 5v1H24z" fill="{SKY}"/>
+<circle cx="7" cy="148" r="3" fill="#292836" stroke="#FFFFFF" stroke-width="1.2"/><circle cx="29" cy="148" r="3" fill="#292836" stroke="#FFFFFF" stroke-width="1.2"/></g>
+</svg>"""
     return f"""<svg class="mh-sky" viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-<defs><linearGradient id="skyg" x1="0" x2="640" y1="0" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{SKY}"/>
-<stop offset=".55" stop-color="{TEAL}"/><stop offset="1" stop-color="{GREEN}"/></linearGradient>
+<defs><linearGradient id="skyg" x1="0" x2="640" y1="0" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#176B3A"/>
+<stop offset=".55" stop-color="#176B3A"/><stop offset="1" stop-color="#176B3A"/></linearGradient>
 <linearGradient id="skyfade" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".18" stop-color="#fff"/></linearGradient>
 <mask id="skymask"><rect width="640" height="170" fill="url(#skyfade)"/></mask></defs>
 <g mask="url(#skymask)">
-<g fill="none" stroke="url(#skyg)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity=".85">
-<path d="M92 146 V92 M160 146 V92 M88 92 H164 M88 100 H164 M96 92 L104 100 M112 92 L120 100 M128 92 L136 100 M144 92 L152 100"/>
-<path d="M108 100 v5 M144 100 v5"/><rect x="101" y="105" width="14" height="8" rx="2"/><rect x="137" y="105" width="14" height="8" rx="2"/>
-<path d="M104 115 l-4 8 M148 115 l4 8" stroke-dasharray="2 3" opacity=".7"/>
-<path d="M160 128 H190" stroke-width="2.4"/><circle cx="160" cy="128" r="2.5"/>
-<path d="M182 140 V96 a11 11 0 0 1 22 0 V140 M208 140 V88 a11 11 0 0 1 22 0 V140 M182 110 H204 M208 106 H230"/>
-<path d="M240 140 V104 L258 92 V104 L276 92 V104 L294 92 V140 M250 116 h8 M266 116 h8 M282 116 h8 M250 126 h8 M266 126 h8 M282 126 h8"/>
-<path d="M302 140 L305 48 H315 L318 140 M304 70 H316 M303 96 H317"/>
-<path class="mh-smoke" d="M310 42 c-6 -4 -2 -12 5 -10 c2 -7 12 -6 12 1 c6 -1 9 6 4 9"/>
-<path d="M346 140 V44 M340 140 h12 M346 50 H416 M346 50 L362 44 L346 44 M352 56 L346 50 M400 50 V78 M394 78 h12 l-3 8 h-6 z
- M346 64 l8 -14 M346 80 l8 -16 M346 96 l8 -16 M346 112 l8 -16"/>
-<path d="M430 140 L446 52 L462 140 M436 108 H456 M440 84 H452 M433 124 L459 108 M438 108 L454 84 M446 52 V44"/>
-<path d="M474 140 V116 a16 6 0 0 1 32 0 V140 M474 116 a16 6 0 0 0 32 0 M512 140 V122 a12 5 0 0 1 24 0 V140"/>
-<path d="M546 140 V108 L572 96 L598 108 V140 M558 140 V122 H586 V140 M606 140 L608 76 H616 L618 140"/>
-<path class="mh-smoke s2" d="M612 70 c-5 -3 -2 -10 4 -8 c2 -6 10 -5 10 1"/>
+<g fill="#176B3A" stroke="#176B3A" stroke-linejoin="round">
+<!-- Palm and low desert forms -->
+<path d="M38 135 h5 v-27 h4 v27 h14 l-10-18 12 9-4-15 12 13-1-18 10 17 5-15 7 27 z"/>
+<path d="M43 111 c-12-12-19-4-23 1 10-3 16 1 23 7zm3 0c12-12 20-4 24 1-11-3-17 1-24 7z"/>
+<!-- Makkah Clock Tower -->
+<path d="M88 135 L92 71 H100 V55 H108 L112 35 L116 55 H124 V71 H132 L136 135 Z"/>
+<circle cx="112" cy="64" r="9" fill="#FFFFFF"/><circle cx="112" cy="64" r="7" fill="none" stroke="#176B3A" stroke-width="2"/>
+<path d="M112 59v6l5 3" fill="none" stroke="#176B3A" stroke-width="2"/><path d="M98 82h28v4H98zm-2 14h32v4H96zm-1 15h34v4H95z" fill="#FFFFFF" stroke="none" opacity=".9"/>
+<!-- Ithra -->
+<path d="M142 135 C133 122 138 108 153 101 C142 88 150 74 166 73 C170 55 190 48 201 64 C219 63 230 79 220 94 C234 106 226 124 209 128 C196 142 161 143 142 135 Z"/>
+<path d="M151 102c18-8 43-9 70-7M146 120c22-7 52-5 78-8M166 73c15 8 30 8 46 1" fill="none" stroke="#FFFFFF" stroke-width="2" opacity=".9"/>
+<!-- Al-Kharj water tower -->
+<path d="M238 135h42l-6-43h-5V78h-20v14h-5z"/><ellipse cx="259" cy="92" rx="22" ry="9"/>
+<path d="M247 96h24M251 110h16M253 121h12" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+<!-- Kingdom Centre -->
+<path d="M292 135 C296 106 301 74 309 43 H337 C345 74 350 106 354 135 Z"/>
+<path d="M309 43 C311 65 335 65 337 43 Z" fill="#FFFFFF" stroke="none"/>
+<path d="M305 76h36M302 92h42M299 109h48M297 123h52" fill="none" stroke="#FFFFFF" stroke-width="1.7" opacity=".9"/>
+<!-- Al Faisaliah -->
+<path d="M360 135 L378 65 H390 L408 135 Z"/><circle cx="384" cy="58" r="7"/><path d="M384 51V37" fill="none" stroke="#176B3A" stroke-width="3"/>
+<path d="M366 118h36M370 101h28M374 84h20" fill="none" stroke="#FFFFFF" stroke-width="1.8"/>
+<!-- KAFD towers -->
+<path d="M414 135l5-66 20-13 5 79zm35 0 5-89 23 18 4 71zm38 0 4-64 18-14 5 78z"/>
+<path d="M420 77l20-13m-21 29 22-15m-23 32 24-16M455 58l22 18m-24 1 26 21m-27-1 28 22M492 79l17-13m-18 30 20-16m-21 35 22-18" fill="none" stroke="#FFFFFF" stroke-width="2" opacity=".9"/>
+<!-- Jeddah Tower -->
+<path d="M524 135 C531 106 541 69 559 29 L566 135 Z"/>
+<path d="M542 89l20-15m-25 34 27-18m-32 37 33-21" fill="none" stroke="#FFFFFF" stroke-width="2" opacity=".9"/>
+<!-- Palm and terminal buildings -->
+<path d="M580 135h5v-29h4v29h38v-27h9v27z"/>
+<path d="M585 109c-12-13-20-5-25 1 11-3 18 1 25 8zm3 0c13-13 21-5 26 1-12-3-19 1-26 8z"/>
 </g>
-<path d="M40 148 H640" stroke="{LINE}" stroke-width="10" stroke-linecap="round"/>
-<path class="mh-lane" d="M40 148 H640" stroke="{MUTED}" stroke-width="1.4" stroke-dasharray="8 8" opacity=".6"/>
-<g class="mh-truck"><rect x="0" y="137" width="22" height="9" rx="1.5" fill="{TEAL}"/><path d="M22 140 h6 l4 4 v2 h-10 z" fill="{SKY}"/>
-<circle cx="6" cy="147" r="2.4" fill="{BG}" stroke="{SKY}" stroke-width="1.2"/><circle cx="26" cy="147" r="2.4" fill="{BG}" stroke="{SKY}" stroke-width="1.2"/></g>
-<path class="mh-route" d="M120 34 C200 10 250 40 320 24 S 460 4 530 26" fill="none" stroke="url(#skyg)" stroke-width="2.2"
- stroke-dasharray="6 7" stroke-linecap="round"/>
-<g fill="{BG}" stroke="{SKY}" stroke-width="2"><circle cx="120" cy="34" r="4"/><circle cx="214" cy="24" r="4"/>
-<circle cx="320" cy="24" r="4"/><circle cx="430" cy="14" r="4"/></g>
-<circle class="mh-pulse" cx="530" cy="22" r="10" fill="{GREEN}" opacity=".25"/>
-<path d="M530 26 C524 19 521 15 521 11 a9 9 0 0 1 18 0 c0 4 -3 8 -9 15 z" fill="{GREEN}"/><circle cx="530" cy="11" r="3" fill="{BG}"/>
+<!-- Restored road and moving truck -->
+<path d="M24 146 H640" stroke="#292836" stroke-width="10" stroke-linecap="round"/>
+<path class="mh-lane" d="M26 146 H638" stroke="#FFFFFF" stroke-width="1.3" stroke-dasharray="9 9" opacity=".82"/>
+<g class="mh-truck"><rect x="0" y="135" width="24" height="9" rx="1.5" fill="{TEAL}"/><path d="M24 138h7l5 5v1H24z" fill="{SKY}"/>
+<circle cx="7" cy="146" r="3" fill="#292836" stroke="#FFFFFF" stroke-width="1.2"/><circle cx="29" cy="146" r="3" fill="#292836" stroke="#FFFFFF" stroke-width="1.2"/></g>
 </g></svg>"""
 
 

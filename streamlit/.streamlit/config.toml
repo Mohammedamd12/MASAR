@@ -1,10 +1,10 @@
-# Masar theme — navy + sky → teal → green, from the MASAR progress-update deck
+# Masar theme — mint, white, charcoal, coral and soft green
 [theme]
-base = "dark"
-primaryColor = "#1ec6cf"
-backgroundColor = "#0a1430"
-secondaryBackgroundColor = "#152a56"
-textColor = "#e6f2f7"
+base = "light"
+primaryColor = "#F36F5A"
+backgroundColor = "#EAF5F4"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#292836"
 font = "sans serif"
 
 [server]

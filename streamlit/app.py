@@ -9,15 +9,17 @@ Run:   streamlit run app.py
 Data:  see data_source.py  (MASAR_DATA_SOURCE = auto | bigquery | local | snapshot)
 """
 from __future__ import annotations
-
+import json
 import os
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import folium
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
+from streamlit_folium import st_folium
 
 import data_source
 import metrics
@@ -29,6 +31,21 @@ st.markdown(T.CSS, unsafe_allow_html=True)
 PROJECT_DIR = Path(os.environ.get("MASAR_PROJECT_DIR", Path(__file__).resolve().parent.parent))
 SOURCE_SHORT = {"bigquery": "Live BigQuery", "local": "Local pipeline files", "snapshot": "Bundled snapshot"}
 
+@st.cache_data
+def load_saudi_regions() -> dict:
+    """Load Saudi administrative-region boundaries once."""
+    geojson_path = Path(__file__).resolve().parent / "assets" / "saudi_regions.geojson"
+
+    with geojson_path.open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+@st.cache_data
+def load_world_countries() -> dict:
+    """Load low-resolution country boundaries for the map base layer."""
+    geojson_path = Path(__file__).resolve().parent / "assets" / "world_countries.geojson"
+    with geojson_path.open("r", encoding="utf-8") as file:
+        return json.load(file)
 # Readable names for every column a viewer can see in a table.
 COLUMN_LABELS = {
     "city_code": "City code", "city_name": "Industrial city", "region_code": "Region code",
@@ -65,11 +82,33 @@ def short_city(name: str | None) -> str:
 def pretty_table(df: pd.DataFrame):
     """Readable headers, months as 'Jan 2026', thousands separators — still sortable."""
     out = df.copy()
+
+    if "quality_flag" in out.columns:
+        out["quality_flag"] = out["quality_flag"].replace({
+            "entry_exit_imbalance": "Entry / exit imbalance",
+        })
+
     if "month_start" in out:
         out["month_start"] = pd.to_datetime(out["month_start"]).dt.strftime("%b %Y")
-    fmt = {COLUMN_LABELS.get(c, c): "{:,.0f}" for c in out.columns if c in INT_COLS}
-    fmt.update({COLUMN_LABELS.get(c, c): f for c, f in DEC_COLS.items() if c in out.columns})
-    out = out.rename(columns=lambda c: COLUMN_LABELS.get(c, c.replace("_", " ").capitalize()))
+
+    fmt = {
+        COLUMN_LABELS.get(c, c): "{:,.0f}"
+        for c in out.columns
+        if c in INT_COLS
+    }
+    fmt.update({
+        COLUMN_LABELS.get(c, c): f
+        for c, f in DEC_COLS.items()
+        if c in out.columns
+    })
+
+    out = out.rename(
+        columns=lambda c: COLUMN_LABELS.get(
+            c,
+            c.replace("_", " ").capitalize(),
+        )
+    )
+
     return out.style.format(fmt, na_rep="—")
 
 
@@ -236,61 +275,467 @@ else:
 left, right = st.columns([7, 5])
 with left:
     with st.container(border=True):
-        colour_by = st.radio("Colour cities by", ["Region", "Growth Q1 → Q2"], horizontal=True, key="map_colour",
-                             label_visibility="collapsed")
         pts = metrics.map_points(view)
         pts["total_movements"] = pts["total_movements"].astype(float)
-        if colour_by == "Region":
-            fig = px.scatter_geo(
-                pts, lat="latitude", lon="longitude", size="total_movements", color="region_name",
-                color_discrete_map=T.REGION_COLORS, hover_name="city_name", size_max=40,
-                hover_data={"total_movements": ":,.0f", "region_name": True,
-                            "latitude": False, "longitude": False},
-            )
-            fig.update_traces(marker=dict(line=dict(width=1.2, color=T.BG), opacity=0.92))
-        else:
-            growth_map, _ = metrics.growth_q1_q2(view_all_months)
-            pts = pts.merge(growth_map[["city_code", "growth_pct"]], on="city_code", how="left")
-            pts["size"] = 9 + 31 * np.sqrt(pts.total_movements / pts.total_movements.max())
-            lim = max(5.0, float(pts.growth_pct.abs().max())) if pts.growth_pct.notna().any() else 5.0
-            fig = go.Figure()
-            cmp_ = pts[pts.growth_pct.notna()]
-            fig.add_trace(go.Scattergeo(
-                lat=cmp_.latitude, lon=cmp_.longitude, text=cmp_.city_name, name="Compared",
-                customdata=np.stack([cmp_.growth_pct, cmp_.total_movements], axis=-1) if len(cmp_) else None,
-                marker=dict(size=cmp_["size"], color=cmp_.growth_pct, cmin=-lim, cmax=lim, opacity=0.95,
-                            colorscale=[[0, T.DOWN], [0.5, "#c9d3e6"], [1, T.UP]],
-                            line=dict(width=1.2, color=T.BG),
-                            colorbar=dict(title=dict(text="Growth", font=dict(color=T.TXT, size=12)),
-                                          ticksuffix="%", tickfont=dict(color=T.TXT, size=11),
-                                          len=0.55, thickness=10, x=0.985, xanchor="right", y=0.04,
-                                          yanchor="bottom", bgcolor="rgba(10,20,48,0.78)",
-                                          bordercolor=T.LINE, borderwidth=1, xpad=10, ypad=8)),
-                hovertemplate="<b>%{text}</b><br>Growth Q1 → Q2: %{customdata[0]:+.1f}%<br>"
-                              "Movements: %{customdata[1]:,.0f}<extra></extra>", showlegend=False))
-            rest = pts[pts.growth_pct.isna()]
-            if len(rest):
-                fig.add_trace(go.Scattergeo(
-                    lat=rest.latitude, lon=rest.longitude, text=rest.city_name,
-                    name="Not compared (one quarter only)",
-                    marker=dict(size=rest["size"], color="rgba(0,0,0,0)", line=dict(width=1.6, color=T.MUTED)),
-                    hovertemplate="<b>%{text}</b><br>Not compared — data in one quarter only<extra></extra>"))
-        fig.update_geos(  # drawn locally: no map tiles, no API key needed
-            projection_type="mercator", lataxis_range=[15.6, 32.8], lonaxis_range=[25, 65],
-            center=dict(lat=24.2, lon=45),
-            showland=True, landcolor=T.LAND, showocean=True, oceancolor=T.SEA,
-            showlakes=False, showcountries=True, countrycolor=T.BORDER, showcoastlines=True,
-            coastlinecolor=T.BORDER, showframe=False, bgcolor="rgba(0,0,0,0)", resolution=50,
-            domain=dict(x=[0, 1], y=[0, 1]),
+        growth_map, _ = metrics.growth_q1_q2(view_all_months)
+        pts = pts.merge(
+            growth_map[["city_code", "growth_pct"]],
+            on="city_code",
+            how="left",
         )
-        show(fig, 452, "Industrial network pulse — marker size = vehicle movements"
-             + ("" if colour_by == "Region" else
-                f"<br><span style='font-size:12px;color:{T.MUTED}'>Colour = growth Q1 → Q2 in average monthly "
-                "movement · hollow = not compared</span>"),
-             margin=dict(l=0, r=0, t=40 if colour_by == "Region" else 62, b=0),
-             legend=dict(orientation="v", x=0.015, xanchor="left", y=0.03, yanchor="bottom",
-                         itemsizing="constant", title=None, font=dict(color=T.TXT, size=12),
-                         bgcolor="rgba(10,20,48,0.78)", bordercolor=T.LINE, borderwidth=1))
+        pts["growth_label"] = pts["growth_pct"].map(
+            lambda value: f"{value:+.1f}%" if pd.notna(value) else "Not compared"
+        )
+
+        city_totals = (
+            view.groupby("city_code", as_index=False)
+            .agg(entries=("entries", "sum"), exits=("exits", "sum"))
+        )
+        pts = pts.merge(city_totals, on="city_code", how="left")
+
+        leaflet_map = folium.Map(
+            location=[24.2, 45.2],
+            zoom_start=5,
+            min_zoom=5,
+            max_zoom=15,
+            max_bounds=True,
+            min_lat=15.5,
+            max_lat=32.8,
+            min_lon=34.2,
+            max_lon=56.0,
+            tiles="OpenStreetMap",
+            control_scale=True,
+            prefer_canvas=True,
+        )
+
+        folium.GeoJson(
+            load_saudi_regions(),
+            name="Saudi regions",
+            style_function=lambda _feature: {
+                "fillColor": "#D8C7A1",
+                "color": "#746A57",
+                "weight": 1.2,
+                "fillOpacity": 0.28,
+            },
+            tooltip=folium.GeoJsonTooltip(
+                fields=["name_en"],
+                aliases=["Region:"],
+                sticky=False,
+            ),
+        ).add_to(leaflet_map)
+
+        for point in pts.itertuples(index=False):
+            colour = T.REGION_COLORS.get(point.region_name, T.ACCENT)
+            growth_colour = (
+                T.UP if pd.notna(point.growth_pct) and point.growth_pct >= 0
+                else T.DOWN if pd.notna(point.growth_pct)
+                else "#667085"
+            )
+            tooltip_html = f"""
+            <div style="font-family:Arial,sans-serif;min-width:210px;color:#1d2939">
+              <div style="font-size:14px;font-weight:700;margin-bottom:6px">
+                {T.esc(point.city_name)}
+              </div>
+              <div><b>Total movements:</b> {point.total_movements:,.0f}</div>
+              <div><b>Growth Q1 → Q2:</b>
+                <span style="font-weight:700;color:{growth_colour}">
+                  {T.esc(point.growth_label)}
+                </span>
+              </div>
+            </div>
+            """
+            popup_html = f"""
+            <div style="font-family:Arial,sans-serif;min-width:230px;color:#1d2939">
+              <div style="font-size:15px;font-weight:700;margin-bottom:8px">
+                {T.esc(point.city_name)}
+              </div>
+              <div><b>Region:</b> {T.esc(point.region_name)}</div>
+              <div><b>Total movements:</b> {point.total_movements:,.0f}</div>
+              <div><b>Entries:</b> {point.entries:,.0f}</div>
+              <div><b>Exits:</b> {point.exits:,.0f}</div>
+              <div><b>Growth Q1 → Q2:</b> {T.esc(point.growth_label)}</div>
+            </div>
+            """
+            folium.CircleMarker(
+                location=[point.latitude, point.longitude],
+                radius=8,
+                color="#0A1430",
+                weight=2,
+                fill=True,
+                fill_color=colour,
+                fill_opacity=0.95,
+                tooltip=folium.Tooltip(tooltip_html, sticky=True),
+                popup=folium.Popup(popup_html, max_width=320),
+            ).add_to(leaflet_map)
+
+        st.markdown(
+            f"""
+            <div style="margin:0 0 8px 2px">
+              <div style="color:{T.TXT};font-weight:700;font-size:16px">
+                Vehicle Movement by Industrial City
+              </div>
+              <div style="color:{T.MUTED};font-size:12px;margin-top:3px">
+                Colour = region · Hover for movements and growth · Click for details
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st_folium(
+            leaflet_map,
+            height=452,
+            use_container_width=True,
+            returned_objects=[],
+            key="industrial_city_leaflet_map",
+        )
+
+        if True:
+            saudi_regions = load_saudi_regions()
+            world_countries = load_world_countries()
+            fig = go.Figure()
+
+            country_codes = [
+                feature["properties"]["ADM0_A3"]
+                for feature in world_countries["features"]
+            ]
+
+            # Give every visible country the same sand-toned land colour.
+            fig.add_trace(
+                go.Choroplethmap(
+                    geojson=world_countries,
+                    locations=country_codes,
+                    z=[1] * len(country_codes),
+                    featureidkey="properties.ADM0_A3",
+                    colorscale=[[0, "#D8C7A1"], [1, "#D8C7A1"]],
+                    marker_line_color="#A99A7D",
+                    marker_line_width=0.5,
+                    showscale=False,
+                    hoverinfo="skip",
+                    showlegend=False,
+                )
+            )
+
+            region_ids = [
+                feature["properties"]["region_id"]
+                for feature in saudi_regions["features"]
+            ]
+            region_names = [
+                feature["properties"]["name_en"]
+                for feature in saudi_regions["features"]
+            ]
+
+            # Fill only Saudi Arabia and draw its 13 administrative regions.
+            fig.add_trace(
+                go.Choroplethmap(
+                    geojson=saudi_regions,
+                    locations=region_ids,
+                    z=region_ids,
+                    featureidkey="properties.region_id",
+                    text=region_names,
+                    colorscale=[
+                        [0.00, "#D5C49E"],
+                        [0.25, "#E3D3AD"],
+                        [0.50, "#C9B78F"],
+                        [0.75, "#E8DAB8"],
+                        [1.00, "#D2BF96"],
+                    ],
+                    marker_line_color="#746A57",
+                    marker_line_width=1.2,
+                    showscale=False,
+                    hovertemplate="<b>%{text}</b><extra></extra>",
+                    showlegend=False,
+                )
+            )
+
+            max_movement = pts["total_movements"].max()
+            pts["heat_size"] = 14 + 30 * np.sqrt(
+                pts["total_movements"] / max_movement
+            )
+
+            for region_name, region_pts in pts.groupby("region_name"):
+                region_color = T.REGION_COLORS.get(region_name, T.ACCENT)
+
+                for scale, opacity in (
+                    (2.4, 0.04),
+                    (2.0, 0.06),
+                    (1.6, 0.09),
+                    (1.25, 0.13),
+                ):
+                    fig.add_trace(
+                        go.Scattermap(
+                            lat=region_pts["latitude"],
+                            lon=region_pts["longitude"],
+                            mode="markers",
+                            marker=dict(
+                                size=region_pts["heat_size"] * scale,
+                                color=region_color,
+                                opacity=opacity,
+                            ),
+                            hoverinfo="skip",
+                            showlegend=False,
+                        )
+                    )
+
+                fig.add_trace(
+                    go.Scattermap(
+                        lat=region_pts["latitude"],
+                        lon=region_pts["longitude"],
+                        mode="markers",
+                        text=region_pts["city_name"],
+                        name=region_name,
+                        customdata=region_pts[
+                            ["total_movements", "region_name", "growth_label"]
+                        ].to_numpy(dtype=object),
+                        marker=dict(
+                            size=region_pts["heat_size"] * 0.62,
+                            color=region_color,
+                            opacity=0.88,
+                        ),
+                        hovertemplate=(
+                            "<b>%{text}</b><br>"
+                            "Region: %{customdata[1]}<br>"
+                            "Total movements: %{customdata[0]:,.0f}<br>"
+                            "Growth Q1 → Q2: %{customdata[2]}"
+                            "<extra></extra>"
+                        ),
+                        showlegend=True,
+                    )
+                )
+
+            # Fixed label anchors keep all 13 administrative-region names
+            # readable inside their polygons while the user zooms the map.
+            region_label_points = {
+                "Riyadh": (24.3, 46.0),
+                "Makkah": (21.3, 40.4),
+                "Madinah": (24.8, 39.8),
+                "Qassim": (26.2, 43.7),
+                "Eastern Province": (24.8, 50.2),
+                "Asir": (19.2, 42.6),
+                "Tabuk": (28.3, 36.6),
+                "Hail": (27.3, 41.7),
+                "Northern Borders": (30.1, 43.2),
+                "Jazan": (17.1, 42.7),
+                "Najran": (17.6, 44.3),
+                "Bahah": (20.0, 41.5),
+                "Jawf": (29.7, 39.8),
+            }
+
+            fig.add_trace(
+                go.Scattermap(
+                    lat=[point[0] for point in region_label_points.values()],
+                    lon=[point[1] for point in region_label_points.values()],
+                    mode="markers+text",
+                    text=list(region_label_points),
+                    textposition="middle center",
+                    textfont=dict(
+                        family="Open Sans Regular",
+                        size=12,
+                        color="#3D3528",
+                    ),
+                    marker=dict(
+                        size=2,
+                        color="rgba(61,53,40,0.01)",
+                    ),
+                    hoverinfo="skip",
+                    showlegend=False,
+                )
+            )
+
+            fig.update_layout(
+                map=dict(
+                    style="carto-voyager-nolabels",
+                    center=dict(lat=24.2, lon=45.2),
+                    zoom=4.15,
+                    bounds=dict(west=34.2, east=56.0, south=15.5, north=32.8),
+                    bearing=0,
+                    pitch=0,
+                )
+            )
+
+        else:
+            growth_map, _ = metrics.growth_q1_q2(
+                view_all_months
+            )
+
+            pts = pts.merge(
+                growth_map[["city_code", "growth_pct"]],
+                on="city_code",
+                how="left",
+            )
+
+            pts["size"] = (
+                9
+                + 31
+                * np.sqrt(
+                    pts["total_movements"]
+                    / pts["total_movements"].max()
+                )
+            )
+
+            lim = (
+                max(
+                    5.0,
+                    float(pts["growth_pct"].abs().max()),
+                )
+                if pts["growth_pct"].notna().any()
+                else 5.0
+            )
+
+            fig = go.Figure()
+
+            cmp_ = pts[pts["growth_pct"].notna()]
+
+            fig.add_trace(
+                go.Scattergeo(
+                    lat=cmp_["latitude"],
+                    lon=cmp_["longitude"],
+                    text=cmp_["city_name"],
+                    name="Compared",
+                    customdata=(
+                        np.stack(
+                            [
+                                cmp_["growth_pct"],
+                                cmp_["total_movements"],
+                            ],
+                            axis=-1,
+                        )
+                        if len(cmp_)
+                        else None
+                    ),
+                    marker=dict(
+                        size=cmp_["size"],
+                        color=cmp_["growth_pct"],
+                        cmin=-lim,
+                        cmax=lim,
+                        opacity=0.95,
+                        colorscale=[
+                            [0, T.DOWN],
+                            [0.5, "#c9d3e6"],
+                            [1, T.UP],
+                        ],
+                        line=dict(
+                            width=1.2,
+                            color=T.BG,
+                        ),
+                        colorbar=dict(
+                            title=dict(
+                                text="Growth",
+                                font=dict(
+                                    color=T.TXT,
+                                    size=12,
+                                ),
+                            ),
+                            ticksuffix="%",
+                            tickfont=dict(
+                                color=T.TXT,
+                                size=11,
+                            ),
+                            len=0.55,
+                            thickness=10,
+                            x=0.985,
+                            xanchor="right",
+                            y=0.04,
+                            yanchor="bottom",
+                            bgcolor="rgba(10,20,48,0.78)",
+                            bordercolor=T.LINE,
+                            borderwidth=1,
+                            xpad=10,
+                            ypad=8,
+                        ),
+                    ),
+                    hovertemplate=(
+                        "<b>%{text}</b><br>"
+                        "Growth Q1 → Q2: "
+                        "%{customdata[0]:+.1f}%<br>"
+                        "Movements: %{customdata[1]:,.0f}"
+                        "<extra></extra>"
+                    ),
+                    showlegend=False,
+                )
+            )
+
+            rest = pts[pts["growth_pct"].isna()]
+
+            if len(rest):
+                fig.add_trace(
+                    go.Scattergeo(
+                        lat=rest["latitude"],
+                        lon=rest["longitude"],
+                        text=rest["city_name"],
+                        name="Not compared (one quarter only)",
+                        marker=dict(
+                            size=rest["size"],
+                            color="rgba(0,0,0,0)",
+                            line=dict(
+                                width=1.6,
+                                color=T.MUTED,
+                            ),
+                        ),
+                        hovertemplate=(
+                            "<b>%{text}</b><br>"
+                            "Not compared — data in one quarter only"
+                            "<extra></extra>"
+                        ),
+                    )
+                )
+
+            # Growth remains on the geo projection with signed colours.
+            fig.update_geos(
+                projection_type="mercator",
+                lataxis_range=[15.6, 32.8],
+                lonaxis_range=[25, 65],
+                center=dict(lat=24.2, lon=45),
+                showland=True,
+                landcolor="#FFFFFF",
+                showocean=True,
+                oceancolor="#18335F",
+                showlakes=False,
+                showcountries=True,
+                countrycolor="#18335F",
+                showcoastlines=True,
+                coastlinecolor="#18335F",
+                showframe=False,
+                bgcolor="rgba(0,0,0,0)",
+                resolution=50,
+                domain=dict(x=[0, 1], y=[0, 1]),
+            )
+
+        map_title = (
+            "Vehicle Movement by Industrial City"
+            f"<br><span style='font-size:12px;color:{T.MUTED}'>"
+            "Colour = region · Size = total movements · "
+            "Hover = Q1 → Q2 growth"
+            "</span>"
+        )
+
+        if False:  # Retained temporarily for easy comparison with the Leaflet map.
+            show(
+            fig,
+            452,
+            map_title,
+            margin=dict(
+                l=0,
+                r=0,
+                t=62,
+                b=0,
+            ),
+            legend=dict(
+                orientation="v",
+                x=0.015,
+                xanchor="left",
+                y=0.03,
+                yanchor="bottom",
+                itemsizing="constant",
+                title=None,
+                font=dict(
+                    color=T.TXT,
+                    size=12,
+                ),
+                bgcolor="rgba(10,20,48,0.78)",
+                bordercolor=T.LINE,
+                borderwidth=1,
+            ),
+            )
 with right:
     with st.container(border=True):
         trend = metrics.monthly_trend(view, "region")
@@ -487,15 +932,70 @@ with t_context:
             html(T.note("Events: pending", "Appear once event_days is loaded."))
 
 with t_table:
-    html(T.section("City-month table", "Every number on this page comes from this table "
-                   "(one row per industrial city per month)."))
+    html(T.section(
+        "City-month table",
+        "Every number on this page comes from this table "
+        "(one row per industrial city per month).",
+    ))
+
     table_df = view.drop(columns=["latitude", "longitude"])
-    # codes and helper flags stay in the CSV download, not on screen
-    on_screen = table_df.drop(columns=[c for c in ("city_code", "region_code", "quarter", "in_both_quarters")
-                                       if c in table_df.columns])
-    st.dataframe(pretty_table(on_screen), width="stretch", hide_index=True)
-    csv = table_df.assign(month_start=table_df.month_start.dt.strftime("%Y-%m"))
-    st.download_button("Download CSV", csv.to_csv(index=False).encode("utf-8"), "masar_city_month.csv", "text/csv")
+
+    # Codes and helper flags stay in the CSV download, not on screen.
+    on_screen = table_df.drop(
+        columns=[
+            c
+            for c in (
+                "city_code",
+                "region_code",
+                "quarter",
+                "in_both_quarters",
+            )
+            if c in table_df.columns
+        ]
+    )
+
+    st.dataframe(
+        pretty_table(on_screen),
+        width="stretch",
+        hide_index=True,
+        column_config={
+            "Industrial city": st.column_config.TextColumn(
+                "Industrial city",
+                width=200,
+            ),
+            "Region": st.column_config.TextColumn(
+                "Region",
+                width=70,
+            ),
+            "Month": st.column_config.TextColumn(
+                "Month",
+                width=75,
+            ),
+            "Total movements": st.column_config.NumberColumn(
+                "Total movements",
+                width=105,
+            ),
+            "Entry / exit ratio": st.column_config.NumberColumn(
+                "Entry / exit ratio",
+                width=95,
+            ),
+            "Quality flag": st.column_config.TextColumn(
+                "Quality flag",
+                width=180,
+            ),
+        },
+    )
+
+    csv = table_df.assign(
+        month_start=table_df.month_start.dt.strftime("%Y-%m")
+    )
+
+    st.download_button(
+        "Download CSV",
+        csv.to_csv(index=False).encode("utf-8"),
+        "masar_city_month.csv",
+        "text/csv",
+    )
 
 with t_pipe:
     n_files, n_sheets = source_inventory(str(PROJECT_DIR))
