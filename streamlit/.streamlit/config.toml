@@ -1,10 +1,10 @@
-# Masar theme — (dark brown, cream text, terracotta accent)
+# Masar theme — navy + sky → teal → green, from the MASAR progress-update deck
 [theme]
 base = "dark"
-primaryColor = "#c98a68"
-backgroundColor = "#241b12"
-secondaryBackgroundColor = "#33271b"
-textColor = "#ecede0"
+primaryColor = "#1ec6cf"
+backgroundColor = "#0a1430"
+secondaryBackgroundColor = "#152a56"
+textColor = "#e6f2f7"
 font = "sans serif"
 
 [server]
