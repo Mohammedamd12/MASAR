@@ -69,4 +69,4 @@ pytest tests -q        # 15 tests, incl. totals = 20,707,074 (sum of both traffi
 - **Missing months are gaps**, never filled in.
 - **Weather and events are context only** — six months of data cannot show causation.
 - **No mock-up numbers** — the proposal prototype values (e.g. 8.87M) are not used anywhere.
-- **Colour follows the entity** — each region keeps its colour under any filter; palette checked for colour-blind safety on the brown background.
+- **Colour follows the entity** — each region keeps its colour under any filter; palette checked for colour-blind safety on the navy background.
