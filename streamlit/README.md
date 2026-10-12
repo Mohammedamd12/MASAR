@@ -1,7 +1,7 @@
 # Masar dashboard (Streamlit) — SDA-21
 
 Answers the Operations Manager's questions on vehicle movement across Saudi industrial cities (Jan–Jun 2026).
-Theme follows the MASAR progress-update deck: navy surfaces, sky → teal → green route gradient, Montserrat + Cairo.
+Light theme: mint and white surfaces, charcoal text, coral accent, Saudi-green logo and landmark skyline.
 
 ## Proof it works
 
