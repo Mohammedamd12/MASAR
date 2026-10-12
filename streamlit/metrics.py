@@ -1,6 +1,7 @@
 """Pure calculations for the Masar dashboard (pandas in, pandas out).
 
-No Streamlit and no BigQuery here, so every number can be tested.
+No Streamlit and no BigQuery here, so every number can be tested
+(see tests/test_metrics.py).
 
 Everything works on one "city-month" table: one row per industrial city per month.
 `build_city_month()` creates it from whatever the pipeline provides:
@@ -64,7 +65,7 @@ def build_city_month(
     t = t.drop(columns=[c for c in ["city_name", "region_code"] if c in t], errors="ignore")
     t = t.merge(seed, on="city_code", how="left")
 
-    reg = regions.copy()
+    reg = regions.rename(columns={"region_name": "region_name"}).copy()
     reg["region_name"] = reg["region_name"].map(_short_region)
     t = t.merge(reg[["region_code", "region_name"]], on="region_code", how="left")
 
@@ -167,7 +168,10 @@ def map_points(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def growth_q1_q2(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Q1 -> Q2 growth on AVERAGE monthly movement (some cities miss months)."""
+    """Q1 -> Q2 growth on AVERAGE monthly movement (some cities miss months).
+
+    Returns (cities in both quarters with growth, excluded cities with reason).
+    """
     m = df.groupby(["city_code", "city_name", "quarter"], as_index=False).agg(
         avg_monthly=("total_movements", "mean"), months=("month_start", "nunique"))
     q1 = m[m.quarter == "2026-Q1"].set_index(["city_code", "city_name"])
@@ -236,3 +240,113 @@ def monthly_context(df: pd.DataFrame) -> pd.DataFrame:
 def context_available(df: pd.DataFrame) -> dict:
     return {"weather": bool(pd.to_numeric(df["avg_temp_c"], errors="coerce").notna().any()),
             "events": bool(pd.to_numeric(df["event_count"], errors="coerce").notna().any())}
+
+
+# --------------------------------------------------------------------------- summary helpers
+def month_change(df: pd.DataFrame, month) -> dict | None:
+    """Selected month vs the month before, LIKE-FOR-LIKE: only cities with data in both months.
+
+    `df` must not be filtered by month. Returns None when there is no previous month to compare.
+    """
+    month = pd.Timestamp(month)
+    prev = month - pd.DateOffset(months=1)
+    cur, pre = df[df.month_start == month], df[df.month_start == prev]
+    common = sorted(set(cur.city_code) & set(pre.city_code))
+    if not common:
+        return None
+    c, p = cur[cur.city_code.isin(common)], pre[pre.city_code.isin(common)]
+
+    def pct(a, b):
+        return float((a - b) / b * 100) if b else None
+
+    def by(level):
+        a = c.groupby(level)["total_movements"].sum()
+        b = p.groupby(level)["total_movements"].sum()
+        return {key: pct(a[key], b[key]) for key in a.index if key in b.index}
+
+    ratio = lambda d: d.entries.sum() / d.exits.sum() if d.exits.sum() else np.nan  # noqa: E731
+    temp_c = pd.to_numeric(c.avg_temp_c, errors="coerce").mean()
+    temp_p = pd.to_numeric(p.avg_temp_c, errors="coerce").mean()
+    return {
+        "prev": prev, "cities": len(common), "cities_now": int(cur.city_code.nunique()),
+        "total_pct": pct(c.total_movements.sum(), p.total_movements.sum()),
+        "by_city": by("city_name"), "by_region": by("region_name"),
+        "ratio_delta": float(ratio(c) - ratio(p)),
+        "temp_delta": None if pd.isna(temp_c) or pd.isna(temp_p) else float(temp_c - temp_p),
+    }
+
+
+def insights(view: pd.DataFrame, view_all_months: pd.DataFrame) -> list[dict]:
+    """Three plain-language findings for the Operations Manager: volume, growth, data quality.
+
+    Wording points to where to investigate (gate capacity, staffing, traffic management);
+    it never claims a cause.
+    """
+    out = []
+    by_city = view.groupby("city_name")["total_movements"].sum().sort_values(ascending=False)
+    total = by_city.sum()
+    if total:
+        top, top_v = by_city.index[0], by_city.iloc[0]
+        out.append({"tag": "Volume", "kind": "volume", "value": f"{top_v / total:.0%}",
+                    "title": f"{top} carries the most traffic",
+                    "body": f"{top_v:,.0f} of {total:,.0f} vehicle movements in scope — "
+                            "first candidate for a gate-capacity and staffing review."})
+
+    growth, excluded = growth_q1_q2(view_all_months)
+    if growth.empty:
+        out.append({"tag": "Growth", "kind": "growth", "value": "—",
+                    "title": "Growth not comparable for this selection",
+                    "body": "Q1 → Q2 growth needs a city with data in both quarters."})
+    else:
+        g = growth.iloc[0]
+        few = g.q1_months < 3 or g.q2_months < 3
+        body = (f"Average monthly movement {g.q1_avg_monthly:,.0f} → {g.q2_avg_monthly:,.0f} "
+                f"({int(g.q1_months)} + {int(g.q2_months)} months).")
+        low = growth.iloc[-1]
+        if len(growth) > 1 and low.growth_pct < 0:
+            body += f" Largest drop: {low.city_name} ({low.growth_pct:+.1f}%)."
+        if few:
+            body += " Fewer than 3 months in a quarter — read with care."
+        out.append({"tag": "Fastest growth Q1 → Q2", "kind": "growth", "value": f"{g.growth_pct:+.1f}%",
+                    "title": f"{g.city_name} grew fastest", "body": body
+                    + (f" {len(excluded)} cities not compared (one quarter only)." if len(excluded) else "")})
+
+    flags = quality_flags(view_all_months)
+    if flags.empty:
+        out.append({"tag": "Data quality", "kind": "quality", "value": "0",
+                    "title": "No data-quality flags in this selection",
+                    "body": "Entries and exits stay within 30% of each other in every city-month."})
+    else:
+        counts = flags.groupby("city_name").size().sort_values(ascending=False)
+        worst, n = counts.index[0], int(counts.iloc[0])
+        months_with_data = view_all_months[view_all_months.city_name == worst].month_start.nunique()
+        out.append({"tag": "Data quality", "kind": "quality", "value": f"{n}/{months_with_data}",
+                    "title": f"{worst}: flagged in {n} of {months_with_data} months",
+                    "body": f"{len(flags)} flagged city-months in total. Check gate counts before "
+                            "reading these months as real changes."})
+    return out
+
+
+def city_profile(view: pd.DataFrame, view_all_months: pd.DataFrame, city_code: str) -> dict:
+    """Facts for one industrial city: totals in scope, growth, month coverage and flags."""
+    one = view[view.city_code == city_code]
+    all_m = view_all_months[view_all_months.city_code == city_code]
+    growth, excluded = growth_q1_q2(all_m)
+    flags = quality_flags(all_m)
+    flagged = set(pd.to_datetime(flags.month_start))
+    present = set(pd.to_datetime(all_m.month_start))
+    peak = all_m.loc[all_m.total_movements.idxmax()] if not all_m.empty else None
+    region_total = view[view.region_name == all_m.region_name.iloc[0]].total_movements.sum() if not all_m.empty else 0
+    return {
+        "name": all_m.city_name.iloc[0] if not all_m.empty else city_code,
+        "region": all_m.region_name.iloc[0] if not all_m.empty else "—",
+        "entries": int(one.entries.sum()), "exits": int(one.exits.sum()),
+        "total": int(one.total_movements.sum()),
+        "region_share": float(one.total_movements.sum() / region_total) if region_total else None,
+        "ratio": round(one.entries.sum() / one.exits.sum(), 2) if one.exits.sum() else None,
+        "growth": None if growth.empty else growth.iloc[0].to_dict(),
+        "growth_reason": None if excluded.empty else excluded.iloc[0].reason,
+        "months": [{"month": m, "has_data": m in present, "flagged": m in flagged} for m in EXPECTED_MONTHS],
+        "flag_reasons": flags.reason.tolist(),
+        "peak": None if peak is None else (pd.Timestamp(peak.month_start), int(peak.total_movements)),
+    }
