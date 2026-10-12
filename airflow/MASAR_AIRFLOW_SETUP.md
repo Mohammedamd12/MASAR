@@ -54,6 +54,7 @@ Set up Application Default Credentials (ADC) **on your host**, not inside Airflo
 
 ```bash
 gcloud auth application-default login
+gcloud auth application-default set-quota-project saudi-industrial-mobility
 gcloud config set project saudi-industrial-mobility
 ```
 
