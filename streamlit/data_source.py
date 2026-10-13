@@ -80,8 +80,13 @@ def load_bigquery() -> LoadResult:
         client = _bq_client()
         mart = client.query(f"SELECT * FROM `{MART_TABLE}`").to_dataframe()
         updated = _fmt_time(client.get_table(MART_TABLE).modified)
-    except Exception as exc:  # noqa: BLE001 - shown to the user
-        return LoadResult(None, "bigquery", label, error=f"Could not read the mart: {exc}")
+    except Exception as exc:
+        return LoadResult(
+            None,
+            "bigquery",
+            label,
+            error=f"Could not read the mart ({type(exc).__name__}): {exc!r}",
+    )
     if mart.empty:
         return LoadResult(None, "bigquery", label, error="The mart returned no rows.")
 
