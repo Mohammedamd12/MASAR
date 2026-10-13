@@ -25,7 +25,7 @@ Light theme: mint and white surfaces, charcoal text, coral accent, Saudi-green l
 - City profile when one city is selected (totals, growth, month coverage, flags)
 - Interactive Saudi map (Folium) — marker = industrial city, colour = region; hover for movements and growth, click for details
 - Monthly movement trend by region
-- City comparison bars
+- City comparison bars (with a log-scale toggle for small cities)
 - Weather context and government events cards (context, not cause)
 
 **Tabs**
@@ -52,7 +52,7 @@ Filters: region, industrial city, month, with a Reset filters button.
 | Where | `MASAR_DATA_SOURCE` | Why |
 |---|---|---|
 | Docker (`docker compose`, demo) | `bigquery` | Live mart only. If BigQuery is unreachable the page shows a clear error, no silent fallback |
-| Public demo (masar-saudi.streamlit.app) | `auto` → snapshot | No GCP credentials in the cloud demo, so it shows the validated snapshot and says so on the page |
+| Public demo (masar-saudi.streamlit.app) | `auto` → BigQuery | Live BigQuery through a read-only service account (`masar-dashboard-reader`) in Streamlit secrets. Falls back to the snapshot **only if BigQuery fails** (missing secret or connection error), and the page then says "Public demo dataset" |
 | Local `streamlit run` | `auto` | Anyone without credentials can still open the dashboard; the header shows when it is not live |
 
 City → region and coordinates come from `dbt/seeds/industrial_cities.csv` and `regions.csv`.
