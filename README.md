@@ -130,10 +130,6 @@ docker compose up airflow-init
 docker compose up -d
 ```
 
-Open:
-
-- Airflow: <http://localhost:8080>
-- Streamlit: <http://localhost:8501>
 
 Run the `masar_core_pipeline` DAG from Airflow.
 
