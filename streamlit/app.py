@@ -253,11 +253,19 @@ html(T.header(SOURCE_SHORT.get(result.source, result.label), live, result.update
               f"Vehicle entries & exits across {k['cities']} industrial "
               f"{'city' if k['cities'] == 1 else 'cities'} · {month_span}"))
 
-if not live:
-    html(T.note(f"BigQuery is not reachable right now — showing {SOURCE_SHORT.get(result.source, result.label).lower()}.",
-                "Numbers come from the same pipeline output, but they may be older than the live mart. "
-                "Connect Google credentials (<code>gcloud auth application-default login</code>) to read BigQuery.",
-                "warn"))
+if result.source == "snapshot":
+    html(T.note(
+        "Public demo dataset",
+        "This deployed demo uses a validated snapshot of the pipeline output. "
+        "The local project can connect directly to the live BigQuery mart.",
+        "info",
+    ))
+elif not live:
+    html(T.note(
+        f"Showing {SOURCE_SHORT.get(result.source, result.label).lower()}",
+        "The live BigQuery mart is currently unavailable.",
+        "warn",
+    ))
 
 if view.empty:
     html(T.note("No data for this combination of filters.", "Try removing a filter, or use <b>Reset filters</b> "
