@@ -18,13 +18,16 @@ ASSETS = Path(__file__).resolve().parent / "assets"
 BG = "#EAF5F4"               # pale mint page background
 CARD = "#FFFFFF"             # white dashboard cards
 CARD_2 = "#F4FAF9"           # soft mint inner surfaces
-LINE = "#D3E3E1"             # subtle cool-grey borders
-TXT = "#292836"              # deep charcoal/navy
-MUTED = "#667477"            # secondary copy
-FAINT = "rgba(41,40,54,0.10)"
-SKY, TEAL, GREEN = "#FF826B", "#F36F5A", "#95DE91"
-ACCENT = TEAL                 # coral highlight from the reference
-WARN = "#F4A259"
+LINE = "#C9D8CE"           # subtle cool-grey borders
+TXT = "#173B27"              # deep charcoal/navy
+MUTED = "#5F6F65"            # secondary copy
+FAINT = "rgba(23,59,39,0.10)"
+SKY = "#95CFA7"
+TEAL = "#2E7D4F"
+GREEN = "#006C35"
+ACCENT = GREEN
+WARN = "#F4A259"           # coral highlight from the reference
+DOWN = "#FF826B"    
 LAND, SEA, BORDER = "#DDCDA8", "#C9E3E5", "#817866"
 NEUTRAL_MID = "#F1EFEB"
 
@@ -36,9 +39,9 @@ REGION_COLORS = {
     "Qassim": "#9A8BD8",
     "Tabuk": "#FF826B",
 }
-ENTRIES = SKY
-EXITS = "#292836"
-UP = GREEN                   # diverging: growth up
+ENTRIES = "#2E7D4F"
+EXITS = "#173B27"
+UP = "#006C35"                  # diverging: growth up
 DOWN = "#FF826B"             # diverging: growth down
 
 FONT = 'Montserrat, "Segoe UI", system-ui, sans-serif'
@@ -83,9 +86,9 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stSidebar"], .stMa
 [data-testid="stAppViewContainer"] {{ background: {BG}; }}
 [data-testid="stHeader"] {{ background: transparent; }}
 .block-container {{ padding-top: 1.4rem; padding-bottom: 1.5rem; max-width: 1440px; }}
-[data-testid="stSidebar"] {{ background: #292836; border-right: 1px solid #3B3949; }}
-[data-testid="stSidebar"] h3 {{ font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: #FFFFFF; }}
-[data-testid="stSidebar"] p, [data-testid="stSidebar"] label {{ color: #D7D9DE; }}
+[data-testid="stSidebar"] {{ background: #E5E7EB; border-right: 1px solid #D1D5DB; }}
+[data-testid="stSidebar"] h3 {{ font-size: .78rem; letter-spacing: .16em; text-transform: uppercase; color: #111827; }}
+[data-testid="stSidebar"] p, [data-testid="stSidebar"] label {{ color: #4B5563; }}
 p, li, label, .stCaption, [data-testid="stCaptionContainer"] {{ color: {MUTED}; }}
 h1, h2, h3, h4, h5 {{ color: {TXT}; font-family: {FONT}; }}
 
@@ -99,7 +102,7 @@ div[data-baseweb="tab-list"] {{ gap: .35rem; background: {CARD_2}; border: 1px s
 div[data-baseweb="tab-list"] button[role="tab"] {{ border-radius: 999px; padding: .45rem 1rem; height: auto;
   background: transparent; color: {MUTED}; }}
 div[data-baseweb="tab-list"] button[role="tab"] p {{ font-weight: 600; font-size: .85rem; color: inherit; }}
-div[data-baseweb="tab-list"] button[role="tab"]:hover {{ color: {TXT}; background: rgba(95,211,224,.08); }}
+div[data-baseweb="tab-list"] button[role="tab"]:hover {{ color: {TXT}; background: rgba(149,207,167,.08); }}
 div[data-baseweb="tab-list"] button[role="tab"][aria-selected="true"] {{ background: linear-gradient(90deg,{SKY},{GREEN});
   color: {BG}; }}
 div[data-baseweb="tab-highlight"], div[data-baseweb="tab-border"] {{ display: none; }}
@@ -126,7 +129,7 @@ div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {{ c
 /* header */
 .mh {{ container-type: inline-size; position: relative; overflow: hidden; border: 1px solid {LINE}; border-radius: 18px; padding: 22px 26px 22px;
   margin-bottom: 1rem; color: {TXT};
-  background: radial-gradient(1200px 260px at 85% -40%, rgba(255,130,107,.14), transparent 60%),
+  background: radial-gradient(1200px 260px at 85% -40%, rgba(0,108,53,.14), transparent 60%),
               radial-gradient(600px 200px at 0% 120%, rgba(149,222,145,.18), transparent 60%),
               linear-gradient(180deg, #FFFFFF, {CARD_2}); }}
 .mh::before {{ content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -202,7 +205,7 @@ div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {{ c
 .st-card .d {{ font-size: .76rem; color: {MUTED}; line-height: 1.35; }}
 .st-card .m {{ margin-top: .55rem; font-size: 1.15rem; font-weight: 700; color: {SKY}; }}
 .st-card .m span {{ font-size: .72rem; font-weight: 600; color: {MUTED}; margin-left: .25rem; }}
-.st-card.last {{ border-color: {TEAL}; box-shadow: 0 0 0 1px rgba(30,198,207,.35) inset; }}
+.st-card.last {{ border-color: {TEAL}; box-shadow: 0 0 0 1px rgba(46,125,79,.35) inset; }}
 .st-arrow {{ flex: 0 0 22px; display: flex; align-items: center; justify-content: center; color: {TEAL}; }}
 .src-grid {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }}
 .src {{ background: {CARD}; border: 1px solid {LINE}; border-radius: 14px; padding: .9rem 1rem; }}
@@ -217,7 +220,7 @@ div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) p {{ c
 .mh-k .srow {{ display: flex; align-items: center; gap: 7px; min-width: 0; }}
 .mh-k .srow span {{ min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
 .dl {{ flex: none; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }}
-.dl.up {{ color: {GREEN}; background: rgba(45,214,140,.14); }}
+.dl.up {{ color: {GREEN}; background: rgba(0,108,53,.14); }}
 .dl.down {{ color: {DOWN}; background: rgba(255,107,107,.14); }}
 .dl.flat {{ color: {MUTED}; background: rgba(166,179,207,.12); }}
 
