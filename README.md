@@ -16,7 +16,6 @@
   [![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA?logo=terraform&logoColor=white)](https://www.terraform.io/)
   [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-  [Live Demo](https://masar-saudi.streamlit.app/)
 </div>
 
 ---
