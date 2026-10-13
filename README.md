@@ -5,6 +5,8 @@
 
 
   **A data platform for vehicle movement in Saudi industrial cities.**
+[Live Demo](https://masar-saudi.streamlit.app/)
+
 
   [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
   [![Airflow](https://img.shields.io/badge/Apache_Airflow-3.3-017CEE?logo=apacheairflow&logoColor=white)](https://airflow.apache.org/)
@@ -14,7 +16,7 @@
   [![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA?logo=terraform&logoColor=white)](https://www.terraform.io/)
   [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-  [![Live Demo](https://img.shields.io/badge/Live_Demo-masar--saudi.streamlit.app-006C35?logo=streamlit&logoColor=white)](https://masar-saudi.streamlit.app/)
+  [Live Demo](https://masar-saudi.streamlit.app/)
 </div>
 
 ---
