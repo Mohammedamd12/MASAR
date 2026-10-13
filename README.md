@@ -37,9 +37,7 @@ The current analysis covers 12 Saudi industrial cities from January to June 2026
 
 The dashboard shows the main KPIs, city movement, regional trends, and the interactive map.
 
-<p align="center">
-  <img src="docs/dashboard_preview.png" alt="MASAR dashboard preview" width="1100">
-</p>
+<img src="streamlit/docs/dashboard_live_bigquery.png" alt="MASAR dashboard preview" width="1100">
 
 
 ## 🏗️ Architecture

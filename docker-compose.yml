@@ -23,6 +23,12 @@ x-airflow-common: &airflow-common
     postgres:
       condition: service_healthy
 
+  deploy:
+    resources:
+      limits:
+        cpus: "${AIRFLOW_CPU_LIMIT:-1.0}"
+        memory: "${AIRFLOW_MEMORY_LIMIT:-1536M}"
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -37,6 +43,11 @@ services:
       retries: 5
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "${POSTGRES_CPU_LIMIT:-0.5}"
+          memory: "${POSTGRES_MEMORY_LIMIT:-512M}"
 
   airflow-init:
     <<: *airflow-common
@@ -80,10 +91,15 @@ services:
     build: ./streamlit
     environment:
       MASAR_PROJECT_DIR: /app/project
-      MASAR_DATA_SOURCE: auto
+      MASAR_DATA_SOURCE: ${MASAR_DATA_SOURCE:-bigquery}
     volumes:
       - ./:/app/project:ro
       - ${APPDATA}/gcloud:/root/.config/gcloud:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "${STREAMLIT_CPU_LIMIT:-0.75}"
+          memory: "${STREAMLIT_MEMORY_LIMIT:-1G}"
     ports:
       - "8501:8501"
     restart: unless-stopped

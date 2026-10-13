@@ -34,8 +34,20 @@ def read_all(files, headers, min_found):
         raise SystemExit("No usable sheets found. Check --input-dir and the file names.")
     return pd.concat(tables, ignore_index=True), logs
 
+def absolute_path(path: Path) -> Path:
+    """Return a normalized absolute path."""
+    return path.expanduser().resolve()
 
 def main(input_dir: Path, out_dir: Path, skip_weather: bool):
+    input_dir = absolute_path(input_dir)
+    out_dir = absolute_path(out_dir)
+
+    if not input_dir.is_dir():
+        raise FileNotFoundError(f"Input directory does not exist: {input_dir}")
+
+    print(f"Input directory: {input_dir}")
+    print(f"Output directory: {out_dir}")
+
     out_dir.mkdir(parents=True, exist_ok=True)
     cities, regions, event_cities = load_cities(), load_regions(), load_event_cities()
     assert len(cities) == 12 and len(regions) == 5, "seeds must hold 12 cities and 5 regions"
