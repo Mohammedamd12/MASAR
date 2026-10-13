@@ -1,7 +1,7 @@
-# Resource limits added based on Mr. Han's recommendation
-# to improve Docker container stability and resource management.
-# Initial values for testing on a VM with 2 CPU cores and ~5.7 GiB RAM.
-# Review and adjust these limits after testing the full pipeline.
+
+# Resource limits reviewed based on Mr. Han's recommendation.
+# The Airflow Scheduler uses a tested 2.5 GiB memory limit
+# to improve stability during pipeline execution.
 
 x-airflow-common: &airflow-common
   build:
@@ -27,12 +27,15 @@ x-airflow-common: &airflow-common
   depends_on:
     postgres:
       condition: service_healthy
+  deploy:
+    resources:
+      limits:
+        cpus: "${AIRFLOW_CPU_LIMIT:-1.0}"
+        memory: "${AIRFLOW_MEMORY_LIMIT:-1536M}"
 
 services:
   postgres:
     image: postgres:16-alpine
-    mem_limit: 512m
-    cpus: "0.50"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-masar}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
@@ -44,6 +47,11 @@ services:
       retries: 5
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "${POSTGRES_CPU_LIMIT:-0.5}"
+          memory: "${POSTGRES_MEMORY_LIMIT:-512M}"
 
   airflow-init:
     <<: *airflow-common
@@ -53,8 +61,6 @@ services:
   airflow-api-server:
     <<: *airflow-common
     command: api-server
-    mem_limit: 768m
-    cpus: "0.75"
     ports:
       - "8080:8080"
     healthcheck:
@@ -67,15 +73,23 @@ services:
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
-    mem_limit: 2560m
-    cpus: "1.00"
+    # Tested resource limits based on Mr. Han's recommendation.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2560M
+    healthcheck:
+      test: ["CMD", "airflow", "jobs", "check", "--job-type", "SchedulerJob", "--local"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     restart: unless-stopped
 
   airflow-dag-processor:
     <<: *airflow-common
     command: dag-processor
-    mem_limit: 768m
-    cpus: "0.75"
     restart: unless-stopped
 
   airflow-cli:
@@ -85,14 +99,17 @@ services:
 
   streamlit:
     build: ./streamlit
-    mem_limit: 512m
-    cpus: "0.50"
     environment:
       MASAR_PROJECT_DIR: /app/project
-      MASAR_DATA_SOURCE: auto
+      MASAR_DATA_SOURCE: ${MASAR_DATA_SOURCE:-bigquery}
     volumes:
       - ./:/app/project:ro
       - ${APPDATA}/gcloud:/root/.config/gcloud:ro
+    deploy:
+      resources:
+        limits:
+          cpus: "${STREAMLIT_CPU_LIMIT:-0.75}"
+          memory: "${STREAMLIT_MEMORY_LIMIT:-1G}"
     ports:
       - "8501:8501"
     restart: unless-stopped

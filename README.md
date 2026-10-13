@@ -1,7 +1,8 @@
 <div align="center">
-  <img src="streamlit/assets/favicon.png" alt="MASAR icon" width="90">
+  <img src="streamlit/assets/masar_wordmark.png" alt="MASAR logo" width="300">
+</p>
 
-  # 🛣️ MASAR | مسار
+
 
   **A data platform for vehicle movement in Saudi industrial cities.**
 
@@ -31,6 +32,13 @@ The current analysis covers 12 Saudi industrial cities from January to June 2026
 - View weather and public events as extra context.
 - Read from BigQuery, local CSV files, or a saved snapshot.
 - Run the full project with Docker Compose.
+
+## 🖥️ Dashboard Preview
+
+The dashboard shows the main KPIs, city movement, regional trends, and the interactive map.
+
+<img src="streamlit/docs/dashboard_live_bigquery.png" alt="MASAR dashboard preview" width="1100">
+
 
 ## 🏗️ Architecture
 
@@ -132,6 +140,15 @@ docker compose down
 
 ```powershell
 docker compose up -d --build streamlit
+```
+
+## 🧪 Tests & Validation
+
+Run the tests from the project root:
+
+```powershell
+python -m pip install -r ingestion/requirements.txt
+python -m pytest tests -v
 ```
 
 ## 📂 Repository Structure
