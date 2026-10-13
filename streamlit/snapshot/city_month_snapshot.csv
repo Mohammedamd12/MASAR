@@ -1,0 +1,49 @@
+city_code,city_name,region_code,region_name,latitude,longitude,month_start,quarter,entries,exits,total_movements,entry_exit_ratio,in_both_quarters,quality_flag,avg_temp_c,max_temp_c,hot_days,precipitation_mm,event_count
+DMM1,Dammam 1st Industrial City,EAS,Eastern,26.39,50.03,2026-01-01,2026-Q1,259881,232920,492801,1.116,True,,,,,,8
+DMM1,Dammam 1st Industrial City,EAS,Eastern,26.39,50.03,2026-02-01,2026-Q1,227747,207523,435270,1.097,True,,,,,,21
+DMM1,Dammam 1st Industrial City,EAS,Eastern,26.39,50.03,2026-03-01,2026-Q1,206934,196102,403036,1.055,True,,,,,,2
+DMM1,Dammam 1st Industrial City,EAS,Eastern,26.39,50.03,2026-04-01,2026-Q2,302626,268647,571273,1.126,True,,,,,,13
+DMM1,Dammam 1st Industrial City,EAS,Eastern,26.39,50.03,2026-05-01,2026-Q2,172926,222102,395028,0.779,True,,,,,,16
+DMM1,Dammam 1st Industrial City,EAS,Eastern,26.39,50.03,2026-06-01,2026-Q2,190269,267740,458009,0.711,True,,,,,,6
+DMM2,Dammam 2nd Industrial City,EAS,Eastern,26.33,49.96,2026-01-01,2026-Q1,878140,633770,1511910,1.386,True,,,,,,8
+DMM2,Dammam 2nd Industrial City,EAS,Eastern,26.33,49.96,2026-02-01,2026-Q1,636815,384026,1020841,1.658,True,entry_exit_imbalance,,,,,21
+DMM2,Dammam 2nd Industrial City,EAS,Eastern,26.33,49.96,2026-03-01,2026-Q1,543573,212571,756144,2.557,True,entry_exit_imbalance,,,,,2
+DMM2,Dammam 2nd Industrial City,EAS,Eastern,26.33,49.96,2026-04-01,2026-Q2,859859,379857,1239716,2.264,True,entry_exit_imbalance,,,,,13
+DMM2,Dammam 2nd Industrial City,EAS,Eastern,26.33,49.96,2026-05-01,2026-Q2,770637,269530,1040167,2.859,True,entry_exit_imbalance,,,,,16
+DMM2,Dammam 2nd Industrial City,EAS,Eastern,26.33,49.96,2026-06-01,2026-Q2,660372,654370,1314742,1.009,True,,,,,,6
+HFR,Hafr Al-Batin Industrial City,EAS,Eastern,28.38,45.96,2026-06-01,2026-Q2,4225,3850,8075,1.097,False,,,,,,6
+HSA,Al-Ahsa 1st Industrial City,EAS,Eastern,25.35,49.55,2026-01-01,2026-Q1,65244,74472,139716,0.876,True,,,,,,8
+HSA,Al-Ahsa 1st Industrial City,EAS,Eastern,25.35,49.55,2026-02-01,2026-Q1,74099,74441,148540,0.995,True,,,,,,21
+HSA,Al-Ahsa 1st Industrial City,EAS,Eastern,25.35,49.55,2026-03-01,2026-Q1,77515,69459,146974,1.116,True,,,,,,2
+HSA,Al-Ahsa 1st Industrial City,EAS,Eastern,25.35,49.55,2026-04-01,2026-Q2,91770,84873,176643,1.081,True,,,,,,13
+HSA,Al-Ahsa 1st Industrial City,EAS,Eastern,25.35,49.55,2026-05-01,2026-Q2,79809,78563,158372,1.016,True,,,,,,17
+HSA,Al-Ahsa 1st Industrial City,EAS,Eastern,25.35,49.55,2026-06-01,2026-Q2,86434,86075,172509,1.004,True,,,,,,6
+JED,Madn Oasis Jeddah,MAK,Makkah,21.41,39.22,2026-01-01,2026-Q1,37135,29129,66264,1.275,True,,,,,,14
+JED,Madn Oasis Jeddah,MAK,Makkah,21.41,39.22,2026-02-01,2026-Q1,33802,27558,61360,1.227,True,,,,,,14
+JED,Madn Oasis Jeddah,MAK,Makkah,21.41,39.22,2026-03-01,2026-Q1,29194,27214,56408,1.073,True,,,,,,8
+JED,Madn Oasis Jeddah,MAK,Makkah,21.41,39.22,2026-04-01,2026-Q2,43433,34788,78221,1.249,True,,,,,,26
+JED,Madn Oasis Jeddah,MAK,Makkah,21.41,39.22,2026-05-01,2026-Q2,38718,31102,69820,1.245,True,,,,,,15
+JED,Madn Oasis Jeddah,MAK,Makkah,21.41,39.22,2026-06-01,2026-Q2,40315,42232,82547,0.955,True,,,,,,11
+QAS,Qassim 1st Industrial City,QSM,Qassim,26.3,43.96,2026-06-01,2026-Q2,55970,48411,104381,1.156,False,,,,,,1
+KHJ,Al-Kharj Industrial City,RIY,Riyadh,24.15,47.33,2026-01-01,2026-Q1,117234,110467,227701,1.061,False,,,,,,0
+KHJ,Al-Kharj Industrial City,RIY,Riyadh,24.15,47.33,2026-02-01,2026-Q1,67865,91405,159270,0.742,False,,,,,,0
+KHJ,Al-Kharj Industrial City,RIY,Riyadh,24.15,47.33,2026-03-01,2026-Q1,72006,41291,113297,1.744,False,entry_exit_imbalance,,,,,0
+RUH2,Riyadh 2nd Industrial City,RIY,Riyadh,24.59,46.85,2026-01-01,2026-Q1,510435,468793,979228,1.089,True,,,,,,82
+RUH2,Riyadh 2nd Industrial City,RIY,Riyadh,24.59,46.85,2026-02-01,2026-Q1,436478,421239,857717,1.036,True,,,,,,172
+RUH2,Riyadh 2nd Industrial City,RIY,Riyadh,24.59,46.85,2026-03-01,2026-Q1,494667,515563,1010230,0.959,True,,,,,,15
+RUH2,Riyadh 2nd Industrial City,RIY,Riyadh,24.59,46.85,2026-04-01,2026-Q2,550989,591218,1142207,0.932,True,,,,,,118
+RUH2,Riyadh 2nd Industrial City,RIY,Riyadh,24.59,46.85,2026-05-01,2026-Q2,351620,508778,860398,0.691,True,entry_exit_imbalance,,,,,78
+RUH2,Riyadh 2nd Industrial City,RIY,Riyadh,24.59,46.85,2026-06-01,2026-Q2,697655,699764,1397419,0.997,True,,,,,,26
+RUH3,Riyadh 3rd Industrial City,RIY,Riyadh,24.45,46.93,2026-06-01,2026-Q2,29182,27069,56251,1.078,False,,,,,,26
+SDR,Sudair City for Industry and Business,RIY,Riyadh,25.59,45.63,2026-01-01,2026-Q1,150669,137459,288128,1.096,True,,,,,,0
+SDR,Sudair City for Industry and Business,RIY,Riyadh,25.59,45.63,2026-02-01,2026-Q1,150669,137459,288128,1.096,True,repeated_previous_month_values,,,,,2
+SDR,Sudair City for Industry and Business,RIY,Riyadh,25.59,45.63,2026-03-01,2026-Q1,151416,123096,274512,1.23,True,,,,,,0
+SDR,Sudair City for Industry and Business,RIY,Riyadh,25.59,45.63,2026-06-01,2026-Q2,161809,161402,323211,1.003,True,,,,,,0
+ZLF,Zulfi Industrial City,RIY,Riyadh,26.29,44.8,2026-01-01,2026-Q1,2223,2015,4238,1.103,False,,,,,,0
+ZLF,Zulfi Industrial City,RIY,Riyadh,26.29,44.8,2026-02-01,2026-Q1,873,1107,1980,0.789,False,,,,,,0
+ZLF,Zulfi Industrial City,RIY,Riyadh,26.29,44.8,2026-03-01,2026-Q1,576,767,1343,0.751,False,,,,,,0
+TAB,Tabuk Industrial City,TBK,Tabuk,28.42,36.55,2026-01-01,2026-Q1,185418,194868,380286,0.952,True,,,,,,0
+TAB,Tabuk Industrial City,TBK,Tabuk,28.42,36.55,2026-02-01,2026-Q1,157786,174806,332592,0.903,True,,,,,,2
+TAB,Tabuk Industrial City,TBK,Tabuk,28.42,36.55,2026-03-01,2026-Q1,152722,121790,274512,1.254,True,,,,,,0
+TAB,Tabuk Industrial City,TBK,Tabuk,28.42,36.55,2026-05-01,2026-Q2,168160,136937,305097,1.228,True,,,,,,3
+TAB,Tabuk Industrial City,TBK,Tabuk,28.42,36.55,2026-06-01,2026-Q2,176245,144317,320562,1.221,True,,,,,,0

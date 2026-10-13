@@ -1,7 +1,17 @@
 # Masar dashboard (Streamlit) — SDA-21
 
 Answers the Operations Manager's questions on vehicle movement across Saudi industrial cities (Jan–Jun 2026).
-Theme follows the MASAR progress-update deck: navy surfaces, sky → teal → green route gradient, Montserrat + Cairo.
+Light theme: mint and white surfaces, charcoal text, coral accent, Saudi-green logo and landmark skyline.
+
+## Proof it works
+
+**Dashboard reading the live BigQuery mart** (`masar_staging.fct_city_movement_monthly`, total 20,707,074 = sum of both traffic files)
+
+![Dashboard connected to Live BigQuery](docs/dashboard_live_bigquery.png)
+
+**All 15 tests pass** — run from the `streamlit` folder with `pytest tests -v`
+
+![15 tests passed](docs/tests_passed.png)
 
 ## What's on the page
 
