@@ -54,6 +54,19 @@ def load_seeds() -> tuple[pd.DataFrame, pd.DataFrame]:
     return (pd.read_csv(folder / "industrial_cities.csv"),
             pd.read_csv(folder / "regions.csv"))
 
+def _bq_client():
+    """Use the Streamlit Cloud secret if present, otherwise local gcloud credentials."""
+    from google.cloud import bigquery
+    try:
+        import streamlit as st
+        info = st.secrets.get("gcp_service_account")
+    except Exception:  # no secrets file locally / in Docker
+        info = None
+    if info:
+        from google.oauth2 import service_account
+        creds = service_account.Credentials.from_service_account_info(dict(info))
+        return bigquery.Client(project=GCP_PROJECT, credentials=creds)
+    return bigquery.Client(project=GCP_PROJECT)
 
 # --------------------------------------------------------------------------- BigQuery
 def load_bigquery() -> LoadResult:
@@ -63,7 +76,8 @@ def load_bigquery() -> LoadResult:
     except ImportError:
         return LoadResult(None, "bigquery", label, error="google-cloud-bigquery is not installed.")
     try:
-        client = bigquery.Client(project=GCP_PROJECT)
+        #client = bigquery.Client(project=GCP_PROJECT)
+        client = _bq_client()
         mart = client.query(f"SELECT * FROM `{MART_TABLE}`").to_dataframe()
         updated = _fmt_time(client.get_table(MART_TABLE).modified)
     except Exception as exc:  # noqa: BLE001 - shown to the user
