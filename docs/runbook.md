@@ -87,7 +87,7 @@ docker compose run --rm airflow-cli bash -lc "cd /opt/airflow/project/dbt && dbt
 
 ### 7. Dashboard shows "Data is not available right now" (Docker)
 **Why:** the container is forced to `MASAR_DATA_SOURCE=bigquery` and cannot reach BigQuery. This is on purpose, so there is no silent fallback (ADR 0004).
-**Fix:** run `gcloud auth application-default login` on the host, then `docker compose restart streamlit`. For a demo without credentials, use https://masar-saudi.streamlit.app (snapshot).
+**Fix:** run `gcloud auth application-default login` on the host, then `docker compose restart streamlit`. The public demo at https://masar-saudi.streamlit.app reads BigQuery through a read-only service account in Streamlit Secrets and clearly shows **Live BigQuery**. If that secret or BigQuery is unavailable, the public demo falls back to the bundled snapshot and labels it on the page.
 
 ### 8. A container is killed (out of memory)
 **Check:** `docker stats`.
@@ -97,7 +97,7 @@ docker compose run --rm airflow-cli bash -lc "cd /opt/airflow/project/dbt && dbt
 
 ## Rotate credentials
 1. Never commit `.env`, `gcp-key.json` or `*.tfstate`. They are already in `.gitignore`.
-2. If a key leaks: disable it in IAM → create a new one → update the local file → `docker compose restart`.
+2. If a key leaks: disable it in IAM → create a new one → update the local file or Streamlit Secret → restart the affected service.
 3. Do not rotate the Airflow Fernet key casually. Stored connections become unreadable (see `airflow/MASAR_AIRFLOW_SETUP.md`).
 
 ## After grading: teardown

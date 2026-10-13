@@ -1,7 +1,7 @@
 # Terraform
 
 يدير هذا الـRoot Module موارد Masar داخل مشروع Google Cloud
-`saudi-industrial-mobility` وفي منطقة الدمام `me-central1`:
+`saudi-industrial-mobility` وفي منطقة الدوحة `me-central1`:
 
 - Cloud Storage bucket للملفات الخام.
 - BigQuery datasets: `masar_raw` و`masar_staging` و`masar_marts`.

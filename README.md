@@ -154,6 +154,11 @@ python -m pip install -r ingestion/requirements.txt
 python -m pytest tests -v
 ```
 
+## 📚 Operations & Decisions
+
+- [Runbook](docs/runbook.md): debugging, safe reruns, recovery steps, credential rotation, and teardown.
+- [Architecture decisions](docs/decisions/): BigQuery, mart location, growth calculation, dashboard data sources, and full-refresh loads.
+
 ## 📂 Repository Structure
 
 ```text
