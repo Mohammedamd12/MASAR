@@ -1,0 +1,17 @@
+# Masar theme — mint, white, charcoal, coral and soft green
+[theme]
+base = "light"
+primaryColor = "#F36F5A"
+backgroundColor = "#EAF5F4"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#292836"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "viewer"
