@@ -7,7 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the app, its modules and theme (not only app.py)
 COPY . .
 
-ENV MASAR_DATA_SOURCE=auto
+# Container = demo/deploy environment: read the live BigQuery mart only, never fall back silently
+ENV MASAR_DATA_SOURCE=bigquery
 
 EXPOSE 8501
 CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501"]

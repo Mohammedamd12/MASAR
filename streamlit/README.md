@@ -13,15 +13,19 @@ Light theme: mint and white surfaces, charcoal text, coral accent, Saudi-green l
 
 ![15 tests passed](docs/tests_passed.png)
 
+**Docker container is forced to BigQuery** — no silent fallback (`docker compose exec streamlit printenv MASAR_DATA_SOURCE`)
+
+![Docker container reads MASAR_DATA_SOURCE=bigquery](docs/docker_bigquery_env.png)
+
 ## What's on the page
 
 **Overview**
 - KPI cards: total movements, busiest city, busiest region, entry/exit ratio, temperature (or cities in scope); pick one month to see the change vs the month before (like-for-like cities only)
 - Key findings: volume, fastest growth Q1 → Q2, data quality — written from the data
 - City profile when one city is selected (totals, growth, month coverage, flags)
-- Map — *industrial network pulse* (marker size = movements, colour = region or Q1 → Q2 growth)
+- Interactive Saudi map (Folium) — marker = industrial city, colour = region; hover for movements and growth, click for details
 - Monthly movement trend by region
-- City comparison bars (with a log-scale toggle for small cities)
+- City comparison bars
 - Weather context and government events cards (context, not cause)
 
 **Tabs**
@@ -38,10 +42,18 @@ Filters: region, industrial city, month, with a Reset filters button.
 
 | `MASAR_DATA_SOURCE` | Reads |
 |---|---|
-| `auto` (default) | BigQuery → else local files → else bundled snapshot. The page says which one it used |
+| `auto` (code default) | BigQuery → else local files → else bundled snapshot. The page says which one it used |
 | `bigquery` | dbt mart `fct_city_movement_monthly` + `fct_city_weather_daily` and `stg_event_days` (falls back to `masar_raw.weather_daily` / `event_days`), quality flags from `masar_raw.traffic_monthly` |
 | `local` | `data/processed/*.csv` written by `python -m ingestion.run` |
 | `snapshot` | `snapshot/city_month_snapshot.csv` (traffic + events, built from the pipeline output) |
+
+**Which source runs where**
+
+| Where | `MASAR_DATA_SOURCE` | Why |
+|---|---|---|
+| Docker (`docker compose`, demo) | `bigquery` | Live mart only. If BigQuery is unreachable the page shows a clear error, no silent fallback |
+| Public demo (masar-saudi.streamlit.app) | `auto` → snapshot | No GCP credentials in the cloud demo, so it shows the validated snapshot and says so on the page |
+| Local `streamlit run` | `auto` | Anyone without credentials can still open the dashboard; the header shows when it is not live |
 
 City → region and coordinates come from `dbt/seeds/industrial_cities.csv` and `regions.csv`.
 
@@ -64,6 +76,19 @@ streamlit run app.py
 
 For BigQuery: `gcloud auth application-default login`, then `$env:MASAR_DATA_SOURCE="bigquery"`.
 
+## Run with Docker
+
+From the repo root (copy `.env.example` to `.env` first if you don't have one):
+
+```powershell
+docker compose up -d --build streamlit
+docker compose exec streamlit printenv MASAR_DATA_SOURCE   # → bigquery
+```
+
+Open http://localhost:8501 — the header shows **Live BigQuery**.
+Needs `gcloud auth application-default login` on the host (credentials are mounted read-only into the container).
+Stop with `docker compose down`.
+
 ## Tests
 
 ```powershell
@@ -79,4 +104,4 @@ pytest tests -q        # 15 tests, incl. totals = 20,707,074 (sum of both traffi
 - **Missing months are gaps**, never filled in.
 - **Weather and events are context only** — six months of data cannot show causation.
 - **No mock-up numbers** — the proposal prototype values (e.g. 8.87M) are not used anywhere.
-- **Colour follows the entity** — each region keeps its colour under any filter; palette checked for colour-blind safety on the navy background.
+- **Colour follows the entity** — each region keeps its colour under any filter; palette checked for colour-blind safety on the light background.
