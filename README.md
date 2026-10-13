@@ -13,6 +13,8 @@
   [![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
   [![Terraform](https://img.shields.io/badge/Terraform-IaC-844FBA?logo=terraform&logoColor=white)](https://www.terraform.io/)
   [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+
+  [![Live Demo](https://img.shields.io/badge/Live_Demo-masar--saudi.streamlit.app-006C35?logo=streamlit&logoColor=white)](https://masar-saudi.streamlit.app/)
 </div>
 
 ---
@@ -35,9 +37,13 @@ The current analysis covers 12 Saudi industrial cities from January to June 2026
 
 ## 🖥️ Dashboard Preview
 
-The dashboard shows the main KPIs, city movement, regional trends, and the interactive map.
+The dashboard shows the main KPIs, city movement, regional trends, and the interactive map. [Open the live demo](https://masar-saudi.streamlit.app/).
 
-<img src="streamlit/docs/dashboard_live_bigquery.png" alt="MASAR dashboard preview" width="1100">
+<p align="center">
+  <a href="https://masar-saudi.streamlit.app/">
+    <img src="streamlit/docs/dashboard_live_bigquery.png" alt="MASAR dashboard preview" width="1100">
+  </a>
+</p>
 
 
 ## 🏗️ Architecture
