@@ -144,7 +144,7 @@ docker compose down
 docker compose up -d --build streamlit
 ```
 
-🧪 Tests & Validation
+## 🧪 Tests & Validation
 
 Run the tests from the project root:
 
