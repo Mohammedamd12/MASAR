@@ -52,7 +52,7 @@ Filters: region, industrial city, month, with a Reset filters button.
 | Where | `MASAR_DATA_SOURCE` | Why |
 |---|---|---|
 | Docker (`docker compose`, demo) | `bigquery` | Live mart only. If BigQuery is unreachable the page shows a clear error, no silent fallback |
-| Public demo (masar-saudi.streamlit.app) | `auto` → BigQuery | Read-only service account (`masar-dashboard-reader`) in Streamlit secrets. Falls back to the snapshot if the secret is missing |
+| Public demo (masar-saudi.streamlit.app) | `auto` → BigQuery | Live BigQuery through a read-only service account (`masar-dashboard-reader`) in Streamlit secrets. Falls back to the snapshot **only if BigQuery fails** (missing secret or connection error), and the page then says "Public demo dataset" |
 | Local `streamlit run` | `auto` | Anyone without credentials can still open the dashboard; the header shows when it is not live |
 
 City → region and coordinates come from `dbt/seeds/industrial_cities.csv` and `regions.csv`.
