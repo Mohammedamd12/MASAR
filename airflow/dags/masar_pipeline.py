@@ -32,6 +32,7 @@ def run_command(*command: str, cwd: Path | None = None) -> None:
     schedule="@daily",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     default_args={
         "retries": 2,
         "retry_delay": timedelta(minutes=2),

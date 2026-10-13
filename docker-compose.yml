@@ -1,3 +1,8 @@
+# Resource limits added based on Mr. Han's recommendation
+# to improve Docker container stability and resource management.
+# Initial values for testing on a VM with 2 CPU cores and ~5.7 GiB RAM.
+# Review and adjust these limits after testing the full pipeline.
+
 x-airflow-common: &airflow-common
   build:
     context: ./airflow
@@ -26,6 +31,8 @@ x-airflow-common: &airflow-common
 services:
   postgres:
     image: postgres:16-alpine
+    mem_limit: 512m
+    cpus: "0.50"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-masar}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
@@ -46,6 +53,8 @@ services:
   airflow-api-server:
     <<: *airflow-common
     command: api-server
+    mem_limit: 768m
+    cpus: "0.75"
     ports:
       - "8080:8080"
     healthcheck:
@@ -58,11 +67,15 @@ services:
   airflow-scheduler:
     <<: *airflow-common
     command: scheduler
+    mem_limit: 2560m
+    cpus: "1.00"
     restart: unless-stopped
 
   airflow-dag-processor:
     <<: *airflow-common
     command: dag-processor
+    mem_limit: 768m
+    cpus: "0.75"
     restart: unless-stopped
 
   airflow-cli:
@@ -72,6 +85,8 @@ services:
 
   streamlit:
     build: ./streamlit
+    mem_limit: 512m
+    cpus: "0.50"
     environment:
       MASAR_PROJECT_DIR: /app/project
       MASAR_DATA_SOURCE: auto
@@ -84,4 +99,3 @@ services:
 
 volumes:
   postgres-data:
-
